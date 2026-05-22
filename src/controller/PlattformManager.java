@@ -3,6 +3,8 @@ package controller;
 import model.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.UUID;
 
 public class PlattformManager {
     private List<Parkplatz> alleParkplaetze;
@@ -11,17 +13,48 @@ public class PlattformManager {
     private User aktuellerNutzer;
 
     public PlattformManager() {
-        // Initialisierung
+        alleParkplaetze = new ArrayList<>();
+        alleBuchungen = new ArrayList<>();
+        alleNutzer = new ArrayList<>();
+    }
+
+    public double berechnePreis(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
+        Buchung testBuchung = new Buchung("test", p, null, von, bis);
+        return testBuchung.berechnePreis();
     }
 
     public boolean verfuegbarkeitPruefen(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
-        // TODO: Implementierung
-        return false;
+        for (Buchung b : alleBuchungen) {
+            if (b.getParkplatz().getId().equals(p.getId())) {
+                boolean ueberschneidung =
+                        b.getVon().isBefore(bis) && b.getBis().isAfter(von);
+
+                if (ueberschneidung) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public Buchung bucheParkplatz(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
-        // TODO: Implementierung
-        return null;
+        if (p == null || von == null || bis == null) {
+            return null;
+        }
+
+        if (!bis.isAfter(von)) {
+            return null;
+        }
+
+        if (!verfuegbarkeitPruefen(p, von, bis)) {
+            return null;
+        }
+
+        String buchungsCode = UUID.randomUUID().toString();
+        Buchung neueBuchung = new Buchung(buchungsCode, p, null, von, bis);
+
+        alleBuchungen.add(neueBuchung);
+        return neueBuchung;
     }
 
     public User registriereNutzer(String name, String email, String typ) {
