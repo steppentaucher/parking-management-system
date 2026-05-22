@@ -2,6 +2,7 @@ package view;
 
 import controller.PlattformManager;
 import javax.swing.*;
+import java.awt.*;
 
 public class KundenDashboardView extends JPanel {
     private PlattformManager manager;
@@ -11,11 +12,11 @@ public class KundenDashboardView extends JPanel {
     private JTextField txtBis;
     private JButton btnSuchen;
     private JButton btnBuchen;
-    private JList listMeineBuchungen;
+    private JList<String> listMeineBuchungen;
 
     public KundenDashboardView(PlattformManager pm) {
         this.manager = pm;
-    }
+      }
 
     private void parkplaetzeSuchen() {
         // TODO: Implementierung

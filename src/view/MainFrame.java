@@ -1,6 +1,10 @@
 package view;
 
 import controller.PlattformManager;
+import model.Betreiber;
+import model.Kunde;
+import model.User;
+
 import javax.swing.*;
 
 public class MainFrame extends JFrame {
@@ -9,17 +13,22 @@ public class MainFrame extends JFrame {
 
     public MainFrame(PlattformManager manager) {
         this.manager = manager;
+
+       
     }
 
     public void zeigeLoginView() {
-        // TODO: Implementierung
+       
     }
 
     public void zeigeKundenView() {
-        // TODO: Implementierung
+        
     }
 
     public void zeigeBetreiberView() {
-        // TODO: Implementierung
+      
+    }
+
+    public void zeigePassendeAnsichtNachLogin() {
     }
 }

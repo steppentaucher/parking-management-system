@@ -16,6 +16,9 @@ public class Betreiber extends User {
     }
 
     public void addParkplatz(Parkplatz p) {
-        // TODO: Implementierung
+        if (p != null) {
+            meineParkplaetze.add(p);
+        }
     }
+    //Todo: Impliementierung
 }
