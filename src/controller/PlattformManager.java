@@ -1,6 +1,7 @@
 package controller;
 
 import model.*;
+import java.util.ArrayList;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -14,6 +15,7 @@ public class PlattformManager {
 		this.alleParkplaetze = new java.util.ArrayList<>();
 		this.alleBuchungen = new java.util.ArrayList<>();
 		this.alleNutzer = new java.util.ArrayList<>();
+    	this.aktuellerNutzer = null;
 	}
 
 	public boolean verfuegbarkeitPruefen(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
@@ -41,8 +43,26 @@ public class PlattformManager {
 	}
 
 	public boolean login(String email) {
-		// TODO: Implementierung
+		if (email == null || email.isBlank()) {
+			System.out.println("Fehler: E-Mail ist leer.");
+			return false;
+		}
+
+		for (User user : alleNutzer) {
+			if (user.getEmail().equalsIgnoreCase(email)) {
+				aktuellerNutzer = user;
+				return true;
+			}
+		}
+
+		System.out.println("Fehler: Kein Nutzer mit dieser E-Mail gefunden.");
 		return false;
+	}
+
+	public void addNutzer(User user) {
+		if (user != null) {						//Kleine Hilfsmethode zum testen 
+			alleNutzer.add(user);
+		}
 	}
 
 	public List<Buchung> getZukuenftigeBuchungenFuerBetreiber(Betreiber b) {
