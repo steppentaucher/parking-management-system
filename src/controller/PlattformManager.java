@@ -4,6 +4,7 @@ import model.*;
 import java.util.ArrayList;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 public class PlattformManager {
 	private List<Parkplatz> alleParkplaetze;
@@ -18,15 +19,23 @@ public class PlattformManager {
 		this.aktuellerNutzer = null;
 	}
 
-	public boolean verfuegbarkeitPruefen(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
-		// TODO: Implementierung
-		return false;
+	public double berechnePreis(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
+		Buchung testBuchung = new Buchung("test", p, null, von, bis);
+		return testBuchung.berechnePreis();
 	}
 
-	public Buchung bucheParkplatz(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
-		// TODO: Implementierung
-		return null;
-	}
+
+    public boolean verfuegbarkeitPruefen(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
+    	// TODO: Implementierung
+    			return true;
+    }
+
+
+    public Buchung bucheParkplatz(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
+    	// TODO: Implementierung
+        return null;
+    }
+
 
 	public User registriereNutzer(String name, String email, String typ) {
 		// TODO: Implementierung
@@ -51,7 +60,7 @@ public class PlattformManager {
 	}
 
 	public void addNutzer(User user) {
-		if (user != null) {						//Kleine Hilfsmethode zum testen 
+		if (user != null) {						// Kleine Hilfsmethode zum testen 
 			alleNutzer.add(user);
 		}
 	}
@@ -69,19 +78,8 @@ public class PlattformManager {
 		// Ruft FileIO auf
 	}
 
-	public List<Parkplatz> getAlleParkplaetze() {
-		return alleParkplaetze;
-	}
-
-	public List<Buchung> getAlleBuchungen() {
-		return alleBuchungen;
-	}
-
-	public List<User> getAlleNutzer() {
-		return alleNutzer;
-	}
-
-	public User getAktuellerNutzer() {
-		return aktuellerNutzer;
-	}
+	public List<Parkplatz> getAlleParkplaetze() { return alleParkplaetze; }
+	public List<Buchung> getAlleBuchungen() { return alleBuchungen; }
+	public List<User> getAlleNutzer() { return alleNutzer; }
+	public User getAktuellerNutzer() { return aktuellerNutzer; }
 }
