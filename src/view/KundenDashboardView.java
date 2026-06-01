@@ -38,7 +38,7 @@ public class KundenDashboardView extends JPanel {
         txtVonDatum = new JTextField();
         txtVonUhrzeit = new JTextField();
         txtBisDatum = new JTextField();
-        txtBisUhrzeit = new JTextField("12:30");
+        txtBisUhrzeit = new JTextField();
 
         btnSuchen = new JButton("Suchen");
         btnBuchen = new JButton("Buchen");

@@ -24,37 +24,13 @@ public class PlattformManager {
     }
 
     public boolean verfuegbarkeitPruefen(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
-        for (Buchung b : alleBuchungen) {
-            if (b.getParkplatz().getId().equals(p.getId())) {
-                boolean ueberschneidung =
-                        b.getVon().isBefore(bis) && b.getBis().isAfter(von);
-
-                if (ueberschneidung) {
-                    return false;
-                }
-            }
-        }
-        return true;
+    	// TODO: Implementierung
+    			return true;
     }
 
     public Buchung bucheParkplatz(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
-        if (p == null || von == null || bis == null) {
-            return null;
-        }
-
-        if (!bis.isAfter(von)) {
-            return null;
-        }
-
-        if (!verfuegbarkeitPruefen(p, von, bis)) {
-            return null;
-        }
-
-        String buchungsCode = UUID.randomUUID().toString();
-        Buchung neueBuchung = new Buchung(buchungsCode, p, null, von, bis);
-
-        alleBuchungen.add(neueBuchung);
-        return neueBuchung;
+    	// TODO: Implementierung
+        return null;
     }
 
     public User registriereNutzer(String name, String email, String typ) {
