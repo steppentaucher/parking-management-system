@@ -2,7 +2,11 @@ package tests;
 
 import controller.PlattformManager;
 import model.Buchung;
+import model.Betreiber;
+import model.Kunde;
 import model.Parkplatz;
+import view.MainFrame;
+
 import java.time.LocalDateTime;
 
 public class PlattformManagerTest {
@@ -22,6 +26,59 @@ public class PlattformManagerTest {
 
         manager.getAlleParkplaetze().add(parkplatz1);
     }
+
+    public static void main(String[] args) {
+        PlattformManagerTest test = new PlattformManagerTest();
+
+        test.setUp();
+        test.testLoginMitGueltigerEmail();
+
+        test.setUp();
+        test.testLoginMitUngueltigerEmail();
+
+        test.setUp();
+     
+    }
+
+    void setUp() {
+        manager = new PlattformManager();
+        manager.addNutzer(new Kunde("k1", "Max Mustermann", "max@mail.de"));
+        manager.addNutzer(new Betreiber("b1", "Anna Betreiber", "anna@mail.de"));
+        // TODO: Hier später weitere Testdaten (Parkplatz, Buchung) initialisieren
+    }
+
+    void testLoginMitGueltigerEmail() {
+        boolean ergebnis = manager.login("max@mail.de");
+
+        System.out.println("testLoginMitGueltigerEmail:");
+        System.out.println("Erwartet: true");
+        System.out.println("Tatsächlich: " + ergebnis);
+
+        if (manager.getAktuellerNutzer() != null) {
+            System.out.println("Aktueller Nutzer: " + manager.getAktuellerNutzer().getEmail());
+        } else {
+            System.out.println("Aktueller Nutzer: null");
+        }
+
+        System.out.println();
+    }
+
+    void testLoginMitUngueltigerEmail() {
+        boolean ergebnis = manager.login("falsch@mail.de");
+
+        System.out.println("testLoginMitUngueltigerEmail:");
+        System.out.println("Erwartet: false");
+        System.out.println("Tatsächlich: " + ergebnis);
+
+        if (manager.getAktuellerNutzer() != null) {
+            System.out.println("Aktueller Nutzer: " + manager.getAktuellerNutzer().getEmail());
+        } else {
+            System.out.println("Aktueller Nutzer: null");
+        }
+
+        System.out.println();
+    }
+
 
     void testRegistrierungErfolgreich() {
         System.out.println("testRegistrierungErfolgreich: noch nicht implementiert");
