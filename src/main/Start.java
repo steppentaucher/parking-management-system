@@ -13,6 +13,8 @@ public class Start {
             MainFrame gui = new MainFrame(manager);
             gui.setVisible(true);
             gui.zeigeLoginView();
+            
+            
         });
     }
 }

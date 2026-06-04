@@ -13,12 +13,24 @@ public class PlattformManager {
 	private User aktuellerNutzer;
 
 	public PlattformManager() {
-		this.alleParkplaetze = new ArrayList<>();
-		this.alleBuchungen = new ArrayList<>();
-		this.alleNutzer = new ArrayList<>();
-		this.aktuellerNutzer = null;
+		this.alleParkplaetze = new java.util.ArrayList<>();
+		this.alleBuchungen = new java.util.ArrayList<>();
+		this.alleNutzer = new java.util.ArrayList<>();
+    	this.aktuellerNutzer = null;
 	}
 
+	public boolean verfuegbarkeitPruefen(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
+	    int count = 0;
+	    for (Buchung b : alleBuchungen) {
+	        if (b.getParkplatz().getId().equals(p.getId())) {
+	            
+	            if (!(bis.isBefore(b.getVon()) || bis.isEqual(b.getVon()) || von.isAfter(b.getBis()) || von.isEqual(b.getBis()))) {
+	                count++;
+	            }
+	        }
+	    }
+
+	    return count < p.getGesamtKapazitaet();
 	public double berechnePreis(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
 		Buchung testBuchung = new Buchung("test", p, null, von, bis);
 		return testBuchung.berechnePreis();
