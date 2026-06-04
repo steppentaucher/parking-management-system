@@ -16,38 +16,34 @@ public class PlattformManager {
 		this.alleParkplaetze = new java.util.ArrayList<>();
 		this.alleBuchungen = new java.util.ArrayList<>();
 		this.alleNutzer = new java.util.ArrayList<>();
-    	this.aktuellerNutzer = null;
+		this.aktuellerNutzer = null;
 	}
 
 	public boolean verfuegbarkeitPruefen(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
-	    int count = 0;
-	    for (Buchung b : alleBuchungen) {
-	        if (b.getParkplatz().getId().equals(p.getId())) {
-	            
-	            if (!(bis.isBefore(b.getVon()) || bis.isEqual(b.getVon()) || von.isAfter(b.getBis()) || von.isEqual(b.getBis()))) {
-	                count++;
-	            }
-	        }
-	    }
+		int count = 0;
+		for (Buchung b : alleBuchungen) {
+			if (b.getParkplatz().getId().equals(p.getId())) {
 
-	    return count < p.getGesamtKapazitaet();
+				if (!(bis.isBefore(b.getVon()) || bis.isEqual(b.getVon()) || von.isAfter(b.getBis())
+						|| von.isEqual(b.getBis()))) {
+					count++;
+				}
+			}
+		}
+
+		return count < p.getGesamtKapazitaet();
+
+	}
+
 	public double berechnePreis(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
 		Buchung testBuchung = new Buchung("test", p, null, von, bis);
 		return testBuchung.berechnePreis();
 	}
 
-
-    public boolean verfuegbarkeitPruefen(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
-    	// TODO: Implementierung
-    			return true;
-    }
-
-
-    public Buchung bucheParkplatz(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
-    	// TODO: Implementierung
-        return null;
-    }
-
+	public Buchung bucheParkplatz(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
+		// TODO: Implementierung
+		return null;
+	}
 
 	public User registriereNutzer(String name, String email, String typ) {
 		// TODO: Implementierung
@@ -72,7 +68,7 @@ public class PlattformManager {
 	}
 
 	public void addNutzer(User user) {
-		if (user != null) {						// Kleine Hilfsmethode zum testen 
+		if (user != null) { // Kleine Hilfsmethode zum testen
 			alleNutzer.add(user);
 		}
 	}
@@ -90,8 +86,19 @@ public class PlattformManager {
 		// Ruft FileIO auf
 	}
 
-	public List<Parkplatz> getAlleParkplaetze() { return alleParkplaetze; }
-	public List<Buchung> getAlleBuchungen() { return alleBuchungen; }
-	public List<User> getAlleNutzer() { return alleNutzer; }
-	public User getAktuellerNutzer() { return aktuellerNutzer; }
+	public List<Parkplatz> getAlleParkplaetze() {
+		return alleParkplaetze;
+	}
+
+	public List<Buchung> getAlleBuchungen() {
+		return alleBuchungen;
+	}
+
+	public List<User> getAlleNutzer() {
+		return alleNutzer;
+	}
+
+	public User getAktuellerNutzer() {
+		return aktuellerNutzer;
+	}
 }
