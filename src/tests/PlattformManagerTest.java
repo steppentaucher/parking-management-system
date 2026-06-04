@@ -14,9 +14,15 @@ public class PlattformManagerTest {
     private PlattformManager manager;
     private Parkplatz p1;
     private Parkplatz parkplatz1;
+    private PlattformManagerTest test;
 
     void setUp() {
         manager = new PlattformManager();
+        test = new PlattformManagerTest();
+        p1 = new Parkplatz("1", "Test", "Str", 1, 10.0);
+        manager.getAlleParkplaetze().add(p1);
+        manager.addNutzer(new Kunde("k1", "Max Mustermann", "max@mail.de"));
+        manager.addNutzer(new Betreiber("b1", "Anna Betreiber", "anna@mail.de"));
 
         parkplatz1 = new Parkplatz(
                 "P1",
@@ -24,6 +30,8 @@ public class PlattformManagerTest {
                 "Berlin Mitte",
                 50,
                 2.5
+               
+        
         );
 
         manager.getAlleParkplaetze().add(parkplatz1);
@@ -31,6 +39,23 @@ public class PlattformManagerTest {
 
     public static void main(String[] args) {
         PlattformManagerTest test = new PlattformManagerTest();
+        
+
+        test.setUp();
+        test.testRegistrierungErfolgreich();
+
+        test.setUp();
+        test.testVerfuegbarkeitPruefen_Frei();
+
+        test.setUp();
+        test.testVerfuegbarkeitPruefen_Belegt();
+
+        test.setUp();
+        test.testBucheParkplatz_Erfolgreich();
+
+        test.setUp();
+        test.testStornierung_Freigabe();
+    
 
         System.out.println("--- PlattformManager Verfügbarkeitsprüfung ---");
         
@@ -66,12 +91,7 @@ public class PlattformManagerTest {
         ));
     }
 
-    private void setUp() {
-        manager = new PlattformManager();
-        p1 = new Parkplatz("1", "Test", "Str", 1, 10.0);
-        manager.getAlleParkplaetze().add(p1);
-    }
-
+ 
     private void addBooking(int startH, int endH) {
         LocalDateTime von = LocalDateTime.of(2026, 6, 1, startH, 0);
         LocalDateTime bis = LocalDateTime.of(2026, 6, 1, endH, 0);
@@ -87,12 +107,7 @@ public class PlattformManagerTest {
      
     }
 
-    void setUp() {
-        manager = new PlattformManager();
-        manager.addNutzer(new Kunde("k1", "Max Mustermann", "max@mail.de"));
-        manager.addNutzer(new Betreiber("b1", "Anna Betreiber", "anna@mail.de"));
-        // TODO: Hier später weitere Testdaten (Parkplatz, Buchung) initialisieren
-    }
+    
 
     void testLoginMitGueltigerEmail() {
         boolean ergebnis = manager.login("max@mail.de");
@@ -171,26 +186,12 @@ public class PlattformManagerTest {
 
     private boolean check(LocalDateTime von, LocalDateTime bis) {
         return manager.verfuegbarkeitPruefen(p1, von, bis);
+    }
     void testStornierung_Freigabe() {
         System.out.println("testStornierung_Freigabe: noch nicht implementiert");
     }
 
-    public static void main(String[] args) {
-        PlattformManagerTest test = new PlattformManagerTest();
+   
+       
 
-        test.setUp();
-        test.testRegistrierungErfolgreich();
-
-        test.setUp();
-        test.testVerfuegbarkeitPruefen_Frei();
-
-        test.setUp();
-        test.testVerfuegbarkeitPruefen_Belegt();
-
-        test.setUp();
-        test.testBucheParkplatz_Erfolgreich();
-
-        test.setUp();
-        test.testStornierung_Freigabe();
-    }
 }

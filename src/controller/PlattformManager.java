@@ -31,17 +31,17 @@ public class PlattformManager {
 	    }
 
 	    return count < p.getGesamtKapazitaet();
+	    
+	}
+	
+	
 	public double berechnePreis(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
 		Buchung testBuchung = new Buchung("test", p, null, von, bis);
 		return testBuchung.berechnePreis();
 	}
 
 
-    public boolean verfuegbarkeitPruefen(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
-    	// TODO: Implementierung
-    			return true;
-    }
-
+  
 
     public Buchung bucheParkplatz(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
     	// TODO: Implementierung
