@@ -73,8 +73,36 @@ public class PlattformManager {
   
 
     public Buchung bucheParkplatz(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
-    	// TODO: Implementierung
-        return null;
+    	if (p == null || von == null || bis == null) {
+    		return null;
+    	}
+
+    	if (aktuellerNutzer == null) {
+    		return null;
+    	}
+
+    	if (!(aktuellerNutzer instanceof Kunde)) {
+    		return null;
+    	}
+
+    	if (!verfuegbarkeitPruefen(p, von, bis)) {
+    		return null;
+    	}
+
+    	Buchung pruefBuchung = new Buchung("test", p, null, von, bis);
+    	if (!pruefBuchung.istMindestdauerErfuellt()) {
+    		return null;
+    	}
+
+    	Kunde kunde = (Kunde) aktuellerNutzer;
+    	String buchungsCode = UUID.randomUUID().toString();
+
+    	Buchung neueBuchung = new Buchung(buchungsCode, p, kunde, von, bis);
+
+    	alleBuchungen.add(neueBuchung);
+    	kunde.addBuchung(neueBuchung);
+
+        return neueBuchung;
     }
 
 
