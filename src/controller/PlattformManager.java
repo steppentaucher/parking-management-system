@@ -46,9 +46,7 @@ public class PlattformManager {
         System.out.println("Buchung erfolgreich storniert.");
     }
 	
-	public boolean verfuegbarkeitPruefen(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
-		// TODO: Implementierung
-		return false;
+	
 
 	public boolean verfuegbarkeitPruefen(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
 	    int count = 0;

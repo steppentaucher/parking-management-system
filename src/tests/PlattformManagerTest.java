@@ -97,8 +97,7 @@ public class PlattformManagerTest {
         LocalDateTime bis = LocalDateTime.of(2026, 6, 1, endH, 0);
         manager.getAlleBuchungen().add(new Buchung("B", p1, null, von, bis));
 
-        test.setUp();
-        test.testLoginMitGueltigerEmail();
+   
 
         test.setUp();
         test.testLoginMitUngueltigerEmail();
