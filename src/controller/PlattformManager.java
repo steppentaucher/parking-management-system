@@ -18,6 +18,37 @@ public class PlattformManager {
 		this.alleNutzer = new java.util.ArrayList<>();
     	this.aktuellerNutzer = null;
 	}
+	
+    public void storniereBuchung(Buchung b) {
+        
+        // Akzeptanzkriterium 1: Nur der Besitzer (Kunde) der Buchung kann diese stornieren.
+        // Wir prüfen, ob überhaupt jemand eingeloggt ist und ob dieser mit dem Kunden der Buchung übereinstimmt.
+        if (this.aktuellerNutzer == null || !this.aktuellerNutzer.equals(b.getKunde())) {
+            // Eine SecurityException signalisiert eine fehlende Berechtigung
+            throw new SecurityException("Abbruch: Nur der Besitzer der Buchung darf diese stornieren.");
+        }
+
+        // Akzeptanzkriterium 2: Das Buchung-Objekt wird aus allen Listen entfernt.
+        
+        // a) Aus der globalen Liste des PlattformManagers entfernen
+        this.alleBuchungen.remove(b);
+        
+        // b) Aus der persönlichen Liste "meineBuchungen" des Kunden entfernen
+        // Da wir oben geprüft haben, dass der aktuelle Nutzer der Besitzer ist, 
+        // können wir ihn sicher zu einem "Kunde"-Objekt casten.
+        Kunde betroffenerKunde = (Kunde) this.aktuellerNutzer;
+        betroffenerKunde.getMeineBuchungen().remove(b);
+
+        // Akzeptanzkriterium 3: Die Verfügbarkeitsprüfung (US4) erkennt den Platz sofort wieder als frei.
+        // -> Automatisch erfüllt! Da das Buchungsobjekt vollständig aus 'alleBuchungen' gelöscht wurde,
+        // wird die Methode 'verfuegbarkeitPruefen' diesen Zeitraum bei einer erneuten Abfrage als leer/frei betrachten.
+        
+        System.out.println("Buchung erfolgreich storniert.");
+    }
+	
+	public boolean verfuegbarkeitPruefen(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
+		// TODO: Implementierung
+		return false;
 
 	public boolean verfuegbarkeitPruefen(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
 	    int count = 0;
