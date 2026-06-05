@@ -1,6 +1,7 @@
 package model;
 
 import java.io.Serializable;
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 public class Buchung implements Serializable {
@@ -17,6 +18,22 @@ public class Buchung implements Serializable {
         this.kunde = k;
         this.von = von;
         this.bis = bis;
+    }
+
+    public double berechnePreis() {
+        long minuten = Duration.between(von, bis).toMinutes();
+
+        if (minuten < 15) {
+            return 0.0;
+        }
+
+        double stunden = minuten / 60.0;
+        return stunden * parkplatz.getStundenSatz();
+    }
+
+    public boolean istMindestdauerErfuellt() {
+        long minuten = Duration.between(von, bis).toMinutes();
+        return minuten >= 15;
     }
 
     public String getBuchungsCode() { return buchungsCode; }
