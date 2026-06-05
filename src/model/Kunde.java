@@ -16,6 +16,8 @@ public class Kunde extends User {
     }
 
     public void addBuchung(Buchung b) {
-        // TODO: Implementierung
+        if (!meineBuchungen.contains(b)) {
+            meineBuchungen.add(b);
+        }
     }
 }

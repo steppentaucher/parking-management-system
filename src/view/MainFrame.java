@@ -9,6 +9,10 @@ public class MainFrame extends JFrame {
 
     public MainFrame(PlattformManager manager) {
         this.manager = manager;
+        setTitle("BPM - Parkplatz Management");
+        setSize(800, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
     }
 
     public void zeigeLoginView() {

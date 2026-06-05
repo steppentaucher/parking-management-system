@@ -1,6 +1,9 @@
 package model;
 
-public class Parkplatz {
+import java.io.Serializable;
+
+public class Parkplatz implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String id;
     private String bezeichnung;
     private String adresse;
