@@ -1,18 +1,30 @@
 package view;
 
-import controller.PlattformManager;
-import model.Buchung;
-import model.Parkplatz;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.awt.*;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
+
+import controller.PlattformManager;
+import model.Buchung;
+import model.Parkplatz;
 
 public class KundenDashboardView extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -91,6 +103,7 @@ public class KundenDashboardView extends JPanel {
                 preisAktualisieren();
             }
         });
+        aktualisiereMeineBuchungenListe();
     }
 
     private void parkplaetzeSuchen() {
@@ -210,13 +223,7 @@ public class KundenDashboardView extends JPanel {
                 return;
             }
 
-            DefaultListModel<String> model = (DefaultListModel<String>) listMeineBuchungen.getModel();
-            model.addElement(
-                    neueBuchung.getBuchungsCode()
-                            + " | " + ausgewaehlterParkplatz.getBezeichnung()
-                            + " | " + txtVonDatum.getText().trim() + " " + txtVonUhrzeit.getText().trim()
-                            + " bis " + txtBisDatum.getText().trim() + " " + txtBisUhrzeit.getText().trim()
-            );
+            aktualisiereMeineBuchungenListe();
 
             JOptionPane.showMessageDialog(this, "Buchung erfolgreich gespeichert.");
             preisAktualisieren();
@@ -228,6 +235,24 @@ public class KundenDashboardView extends JPanel {
             );
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Fehler beim Buchen.");
+        }
+    }
+    private void aktualisiereMeineBuchungenListe() {
+        DefaultListModel<String> model = (DefaultListModel<String>) listMeineBuchungen.getModel();
+        model.clear();
+
+        if (manager.getAktuellerNutzer() instanceof model.Kunde) {
+            model.Kunde kunde = (model.Kunde) manager.getAktuellerNutzer();
+
+            for (Object obj : kunde.getMeineBuchungen()) {
+                Buchung b = (Buchung) obj;
+                model.addElement(
+                        b.getBuchungsCode()
+                        + " | " + b.getParkplatz().getBezeichnung()
+                        + " | " + b.getVon().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
+                        + " bis " + b.getBis().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
+                );
+            }
         }
     }
 }
