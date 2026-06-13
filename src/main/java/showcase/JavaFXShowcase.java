@@ -1,4 +1,4 @@
-package tests;
+package showcase;
 
 import javafx.animation.*;
 import javafx.application.Application;

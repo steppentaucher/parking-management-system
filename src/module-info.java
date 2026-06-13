@@ -8,4 +8,5 @@ module BPM {
     opens controller to javafx.graphics, javafx.fxml;
     opens view to javafx.graphics, javafx.fxml;
     opens model to javafx.base, javafx.graphics;
+    opens showcase to javafx.graphics, javafx.fxml;
 }
