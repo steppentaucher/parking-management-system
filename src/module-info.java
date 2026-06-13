@@ -8,7 +8,4 @@ module BPM {
     opens controller to javafx.graphics, javafx.fxml;
     opens view to javafx.graphics, javafx.fxml;
     opens model to javafx.base, javafx.graphics;
-    
-    // Erlaubt JavaFX den Zugriff auf die Showcase-Klasse in den Tests
-    opens tests to javafx.graphics, javafx.fxml;
 }
