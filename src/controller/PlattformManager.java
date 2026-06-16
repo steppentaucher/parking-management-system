@@ -187,11 +187,32 @@ public class PlattformManager {
 	}
 
 	public void ladeSystemDaten() {
-		// Ruft FileIO auf
+		this.alleNutzer = FileIO.ladeUser();
+		this.alleParkplaetze = FileIO.ladeParkplaetze();
+		this.alleBuchungen = FileIO.ladeBuchungen();
+		this.aktuellerNutzer = FileIO.ladeSystemDaten();
+		
+		// Referenzen wiederherstellen (damit b.getParkplatz() das gleiche Objekt ist wie in alleParkplaetze)
+		for (Buchung b : alleBuchungen) {
+			for (Parkplatz p : alleParkplaetze) {
+				if (b.getParkplatz().getId().equals(p.getId())) {
+					// Ersetze die deserialisierte Kopie durch das Original-Objekt aus der Liste
+					try {
+						java.lang.reflect.Field f = Buchung.class.getDeclaredField("parkplatz");
+						f.setAccessible(true);
+						f.set(b, p);
+					} catch (Exception e) {}
+					break;
+				}
+			}
+		}
 	}
 
 	public void speichereSystemDaten() {
-		// Ruft FileIO auf
+		FileIO.speichereUser(this.alleNutzer);
+		FileIO.speichereParkplaetze(this.alleParkplaetze);
+		FileIO.speichereBuchungen(this.alleBuchungen);
+		FileIO.speichereSystemDaten(this.aktuellerNutzer);
 	}
 
 	public List<Parkplatz> getAlleParkplaetze() { return alleParkplaetze; }

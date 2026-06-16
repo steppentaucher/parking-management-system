@@ -10,6 +10,13 @@ public class Start {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             PlattformManager manager = new PlattformManager();
+            manager.ladeSystemDaten();
+            
+            // Speichern beim Beenden
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                manager.speichereSystemDaten();
+            }));
+            
             // manager.ladeSystemDaten(); // Später aktivieren
             
       

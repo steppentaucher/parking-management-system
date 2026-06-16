@@ -1,9 +1,11 @@
 package model;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-public class Buchung {
+public class Buchung implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String buchungsCode;
     private Parkplatz parkplatz;
     private Kunde kunde;
