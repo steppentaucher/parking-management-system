@@ -11,6 +11,9 @@ public class Start {
         SwingUtilities.invokeLater(() -> {
             PlattformManager manager = new PlattformManager();
             // manager.ladeSystemDaten(); // Später aktivieren
+            
+      
+            
 
             manager.registriereNutzer("Kunde", "kunde@mail.de", "Kunde");
             manager.registriereNutzer("Betreiber", "betreiber@mail.de", "Betreiber");

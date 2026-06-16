@@ -28,8 +28,8 @@ import java.util.Random;
  */
 public class JavaFXShowcase extends Application {
 
-    private static final Color AI_CYAN = Color.web("#00f2ff");
-    private static final Color AI_PURPLE = Color.web("#7000ff");
+    private static final Color CYAN = Color.web("#00f2ff");
+    private static final Color PURPLE = Color.web("#7000ff");
     private static final Random random = new Random();
 
     @Override
@@ -50,13 +50,13 @@ public class JavaFXShowcase extends Application {
         // --- 2. The Neural Core (Central Animation) ---
         StackPane coreContainer = new StackPane();
         
-        Circle glow1 = createGlowCircle(150, AI_CYAN, 0.2, 3.0);
-        Circle glow2 = createGlowCircle(130, AI_PURPLE, 0.15, 4.5);
-        Circle glow3 = createGlowCircle(110, AI_CYAN, 0.3, 2.0);
+        Circle glow1 = createGlowCircle(150, CYAN, 0.2, 3.0);
+        Circle glow2 = createGlowCircle(130, PURPLE, 0.15, 4.5);
+        Circle glow3 = createGlowCircle(110, CYAN, 0.3, 2.0);
         
         Circle core = new Circle(60);
         core.setFill(new LinearGradient(0, 0, 1, 1, true, CycleMethod.NO_CYCLE,
-                new Stop(0, AI_CYAN), new Stop(1, AI_PURPLE)));
+                new Stop(0, CYAN), new Stop(1, PURPLE)));
         core.setEffect(new Bloom(0.2));
         
         Circle innerPulse = new Circle(40, Color.WHITE);
@@ -85,7 +85,7 @@ public class JavaFXShowcase extends Application {
 
         Label aiStatus = new Label("AI NEURAL CORE ACTIVE");
         aiStatus.setStyle("-fx-font-family: 'Segoe UI Light'; -fx-font-size: 14px; -fx-text-fill: #00f2ff;");
-        applyGlow(aiStatus, AI_CYAN);
+        applyGlow(aiStatus, CYAN);
 
         Label promptHint = new Label("System Status: Optimal | Awaiting Command...");
         promptHint.setStyle("-fx-font-family: 'Segoe UI'; -fx-font-size: 12px; -fx-text-fill: rgba(255,255,255,0.4);");
@@ -93,7 +93,7 @@ public class JavaFXShowcase extends Application {
         Rectangle footer = new Rectangle(600, 2);
         footer.setFill(new LinearGradient(0, 0, 1, 0, true, CycleMethod.NO_CYCLE,
                 new Stop(0, Color.TRANSPARENT), 
-                new Stop(0.5, AI_CYAN), 
+                new Stop(0.5, CYAN), 
                 new Stop(1, Color.TRANSPARENT)));
         footer.setOpacity(0.5);
 
