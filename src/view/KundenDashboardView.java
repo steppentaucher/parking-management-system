@@ -45,6 +45,7 @@ public class KundenDashboardView extends JPanel {
     private JButton btnSuchen;
     private JButton btnBuchen;
     private JButton btnJetztSetzen;
+    private JButton btnPreisakktualisieren;
     private JLabel lblPreis;
     private JLabel lblHinweis;
 
@@ -92,6 +93,7 @@ public class KundenDashboardView extends JPanel {
         btnSuchen.addActionListener(e -> parkplaetzeSuchen());
         btnBuchen.addActionListener(e -> buchungAusfuehren());
         btnJetztSetzen.addActionListener(e -> aktuelleZeitSetzen());
+        btnPreisakktualisieren.addActionListener(e -> preisAktualisieren());
 
         tblParkplaetze.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
@@ -180,8 +182,9 @@ public class KundenDashboardView extends JPanel {
         txtBisDatum.setPreferredSize(new Dimension(160, 44));
         txtBisUhrzeit.setPreferredSize(new Dimension(135, 44));
 
-        btnJetztSetzen = new GradientButton("Jetzt übernehmen");
+        btnJetztSetzen = new GradientButton("Mindestzeit ab jetzt setzen");
         btnJetztSetzen.setPreferredSize(new Dimension(210, 42));
+        
 
         GridBagConstraints gbc = baseGbc();
         gbc.weightx = 1.0;
@@ -296,9 +299,13 @@ public class KundenDashboardView extends JPanel {
 
         btnBuchen = new GradientButton("Jetzt buchen");
         btnBuchen.setPreferredSize(new Dimension(210, 52));
+        
+        btnPreisakktualisieren = new GradientButton("Preis aktualisieren");
+        btnPreisakktualisieren.setPreferredSize(new Dimension(190, 42));
 
         top.add(lblPreis, BorderLayout.CENTER);
         top.add(btnBuchen, BorderLayout.EAST);
+        top.add(btnPreisakktualisieren, BorderLayout.WEST);
 
         JLabel info = new JLabel("Parkplatz auswählen, Zeitraum prüfen und direkt buchen.");
         info.setForeground(TEXT_MUTED);

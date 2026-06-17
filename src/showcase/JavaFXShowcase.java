@@ -21,7 +21,7 @@ import javafx.util.Duration;
 import java.util.Random;
 
 /**
- * AI Interface Showcase
+ *Interface Showcase
  * 
  * HINWEIS: Diese Klasse muss in einem Projekt mit moduler Struktur (module-info.java)
  * oft ueber einen speziellen Launcher gestartet werden, wenn sie im 'test' Ordner liegt.

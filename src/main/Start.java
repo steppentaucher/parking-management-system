@@ -22,8 +22,6 @@ public class Start {
       
             
 
-            manager.registriereNutzer("Kunde", "kunde@mail.de", "Kunde");
-            manager.registriereNutzer("Betreiber", "betreiber@mail.de", "Betreiber");
 
             manager.getAlleParkplaetze().add(
                     new Parkplatz("p1", "City Parkhaus", "Musterstraße 1, Berlin", 20, 2.50)
@@ -31,7 +29,7 @@ public class Start {
             manager.getAlleParkplaetze().add(
                     new Parkplatz("p2", "Zentrum West", "Hauptstraße 12, Berlin", 10, 3.00)
             );
-            manager.getAlleParkplaetze().add(
+            manager.getAlleParkplaetze().add(	
                     new Parkplatz("p3", "Bahnhof Süd", "Bahnhofplatz 5, Berlin", 15, 2.80)
             );
 
