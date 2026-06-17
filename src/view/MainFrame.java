@@ -48,12 +48,16 @@ public class MainFrame extends JFrame {
 
     // Zeigt die Kundenansicht an
     public void zeigeKundenView() {
-        setzePanel(new KundenDashboardView(manager));
+        setzePanel(new KundenDashboardView(manager, this));
     }
 
     // Zeigt die Betreiberansicht an
     public void zeigeBetreiberView() {
         setzePanel(new BetreiberDashboardView(manager));
+    }
+    
+    public void zeigeKundenBuchungenView() {
+        setzePanel(new KundenBuchungenView(manager, this));
     }
 
     /*

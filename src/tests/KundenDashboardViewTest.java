@@ -1,8 +1,9 @@
 package tests;
 
 import controller.PlattformManager;
+import model.Kunde;
 import model.Parkplatz;
-import view.KundenDashboardView;
+import view.MainFrame;
 
 import javax.swing.*;
 
@@ -10,6 +11,14 @@ public class KundenDashboardViewTest {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             PlattformManager manager = new PlattformManager();
+
+            Kunde testKunde = new Kunde(
+                    "K1",
+                    "Max Mustermann",
+                    "max@test.de"
+            );
+
+            manager.addNutzer(testKunde);
 
             manager.getAlleParkplaetze().add(new Parkplatz(
                     "P1",
@@ -35,12 +44,17 @@ public class KundenDashboardViewTest {
                     1.8
             ));
 
-            JFrame frame = new JFrame("KundenDashboard Test");
+            MainFrame frame = new MainFrame(manager);
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setContentPane(new KundenDashboardView(manager));
+            frame.zeigeLoginView();
             frame.setSize(900, 600);
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
+
+            JOptionPane.showMessageDialog(
+                    frame,
+                    "Testnutzer angelegt:\nE-Mail: max@test.de"
+            );
         });
     }
 }

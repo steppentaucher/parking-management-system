@@ -33,8 +33,10 @@ public class KundenDashboardView extends JPanel {
     private static final Color SUCCESS_BG = new Color(238, 242, 255);
     private static final Color TABLE_HEADER_BG = new Color(239, 243, 255);
     private static final Color TABLE_ROW_ALT = new Color(249, 250, 255);
+  
 
     private final PlattformManager manager;
+    private final MainFrame mainFrame;
 
     private JTable tblParkplaetze;
     private JTextField txtSuchOrt;
@@ -47,9 +49,11 @@ public class KundenDashboardView extends JPanel {
     private JButton btnJetztSetzen;
     private JLabel lblPreis;
     private JLabel lblHinweis;
+    
 
-    public KundenDashboardView(PlattformManager pm) {
+    public KundenDashboardView(PlattformManager pm, MainFrame mainFrame){
         this.manager = pm;
+        this.mainFrame = mainFrame;
 
         setLayout(new BorderLayout(14, 14));
         setBorder(new EmptyBorder(14, 14, 14, 14));
@@ -579,7 +583,7 @@ public class KundenDashboardView extends JPanel {
                     "Buchung erfolgreich gespeichert.\nBuchungsCode: " + neueBuchung.getBuchungsCode()
             );
 
-            preisAktualisieren();
+            mainFrame.zeigeKundenBuchungenView();
 
         } catch (DateTimeParseException e) {
             JOptionPane.showMessageDialog(
