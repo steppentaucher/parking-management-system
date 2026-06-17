@@ -20,5 +20,4 @@ public class Kunde extends User {
             meineBuchungen.add(b);
         }
     }
-    //Todo: Impliementierung
 }
