@@ -1,6 +1,5 @@
 name: Java CI with Maven
 
-# Bestimmt, wann der Test läuft (hier: bei jedem Push oder PR auf den main-Branch)
 on:
   push:
     branches: [ "main", "master" ]
@@ -12,18 +11,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Holt den Code aus dem Repository
+    # 1. Code auschecken (korrekt: actions/checkout@v4)
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # 2. Richtet das JDK ein (hier Java 17, passe es an deine Version an)
+    # 2. Java einrichten (korrekt: actions/setup-java@v4)
     - name: Set up JDK 17
-      uses: actions/actions-setup-java@v4
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
 
-    # 3. Führt die Maven-Tests aus (sucht nach @Test Annotationen z.B. von JUnit)
+    # 3. Tests ausführen
     - name: Run Tests with Maven
       run: mvn clean test
