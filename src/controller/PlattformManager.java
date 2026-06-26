@@ -79,7 +79,10 @@ public class PlattformManager {
 	}
 
 
-
+	public String getPreisAufschluesselung(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
+		Buchung testBuchung = new Buchung("test", p, null, von, bis);
+		return testBuchung.getPreisAufschluesselung();
+	}
 
     public Buchung bucheParkplatz(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
 
@@ -114,7 +117,36 @@ public class PlattformManager {
 
     	return neueBuchung;
     }
+    
+    
+    public void parkplatzAnlegen(Parkplatz p) {
+		// AK1 (Prüfung): Nur ein eingeloggter Betreiber darf einen Parkplatz anlegen.
+		if (!(aktuellerNutzer instanceof Betreiber)) {
+			throw new IllegalStateException("Nur Betreiber dürfen Parkplätze anlegen.");
+		}
 
+		// Prüfen, ob bereits ein Parkplatz mit genau denselben Eigenschaften existiert.
+		// Die ID wird nicht verglichen, da sie zufällig erzeugt wird und immer neu ist.
+		for (Parkplatz vorhanden : alleParkplaetze) {
+			if (vorhanden.getBezeichnung().equals(p.getBezeichnung())
+					&& vorhanden.getAdresse().equals(p.getAdresse())
+					&& vorhanden.getGesamtKapazitaet() == p.getGesamtKapazitaet()
+					&& vorhanden.getStundenSatz() == p.getStundenSatz()
+					&& vorhanden.getSonderSatz() == p.getSonderSatz()) {
+				throw new IllegalArgumentException("Fehler: Ein Parkplatz mit genau diesen Eigenschaften existiert bereits.");
+			}
+		}
+
+		Betreiber betreiber = (Betreiber) aktuellerNutzer;
+
+		// addParkplatz prüft Kapazität/Stundensatz (Validierung)
+		// und legt den Parkplatz in meineParkplaetze des Betreibers ab.
+		betreiber.addParkplatz(p);
+
+		// Zusätzlich in die globale Liste, damit Kunden den Parkplatz sehen und buchen können.
+		alleParkplaetze.add(p);
+	}
+    
 
     public User registriereNutzer(String name, String email, String typ) {
         if (name == null || name.isBlank()) {

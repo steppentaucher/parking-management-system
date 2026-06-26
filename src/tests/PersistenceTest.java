@@ -17,7 +17,7 @@ public class PersistenceTest {
         managerSave.getAlleNutzer().add(k1);
         managerSave.getAlleNutzer().add(b1);
         
-        Parkplatz p1 = new Parkplatz("P1", "Zentrum P1", "Hauptstraße 1", 50, 2.50);
+        Parkplatz p1 = new Parkplatz("P1", "Zentrum P1", "Hauptstraße 1", 50, 2.50, 3.50);
         managerSave.getAlleParkplaetze().add(p1);
         b1.addParkplatz(p1); // Verknüpfung Betreiber -> Parkplatz
         

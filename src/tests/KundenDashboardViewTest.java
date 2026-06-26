@@ -16,7 +16,8 @@ public class KundenDashboardViewTest {
                     "Parkhaus Mitte",
                     "Berlin Mitte",
                     50,
-                    2.5
+                    2.5,
+                    3.5
             ));
 
             manager.getAlleParkplaetze().add(new Parkplatz(
@@ -24,7 +25,8 @@ public class KundenDashboardViewTest {
                     "Garage Alex",
                     "Berlin Alexanderplatz",
                     30,
-                    3.0
+                    3.0,
+                    4.0
             ));
 
             manager.getAlleParkplaetze().add(new Parkplatz(
@@ -32,7 +34,8 @@ public class KundenDashboardViewTest {
                     "City Parking",
                     "Berlin Charlottenburg",
                     80,
-                    1.8
+                    1.8,
+                    2.5
             ));
 
             JFrame frame = new JFrame("KundenDashboard Test");

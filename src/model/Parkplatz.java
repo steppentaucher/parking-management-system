@@ -9,13 +9,15 @@ public class Parkplatz implements Serializable {
     private String adresse;
     private int gesamtKapazitaet;
     private double stundenSatz;
+    private double sonderSatz; // Stundensatz fuer Wochenenden und Feiertage
 
-    public Parkplatz(String id, String bez, String adr, int kap, double satz) {
+    public Parkplatz(String id, String bez, String adr, int kap, double satz, double sonderSatz) {
         this.id = id;
         this.bezeichnung = bez;
         this.adresse = adr;
         this.gesamtKapazitaet = kap;
         this.stundenSatz = satz;
+        this.sonderSatz = sonderSatz;
     }
 
     public String getId() { return id; }
@@ -32,4 +34,8 @@ public class Parkplatz implements Serializable {
 
     public double getStundenSatz() { return stundenSatz; }
     public void setStundenSatz(double stundenSatz) { this.stundenSatz = stundenSatz; }
+
+    // Sondersatz fuer Wochenende/Feiertag
+    public double getSonderSatz() { return sonderSatz; }
+    public void setSonderSatz(double sonderSatz) { this.sonderSatz = sonderSatz; }
 }
