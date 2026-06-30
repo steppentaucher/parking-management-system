@@ -17,14 +17,7 @@ public class Start {
                 manager.speichereSystemDaten();
             }));
             
-            // manager.ladeSystemDaten(); // Später aktivieren
-            
-      
-            
-
-
-           
-
+        
             MainFrame gui = new MainFrame(manager);
             gui.setVisible(true);
             gui.zeigeLoginView();
