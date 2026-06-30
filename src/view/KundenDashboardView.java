@@ -1,16 +1,19 @@
 package view;
 
-import controller.PlattformManager;
-import model.Buchung;
-import model.Parkplatz;
-
-import javax.swing.*;
-import javax.swing.border.AbstractBorder;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.RenderingHints;
 import java.awt.geom.RoundRectangle2D;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -18,6 +21,31 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.border.AbstractBorder;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+
+import controller.PlattformManager;
+import model.Buchung;
+import model.Parkplatz;
+import com.github.lgooddatepicker.components.DatePicker;
+import com.github.lgooddatepicker.components.DatePickerSettings;
+
 
 public class KundenDashboardView extends JPanel {
     private static final long serialVersionUID = 1L;
@@ -38,9 +66,9 @@ public class KundenDashboardView extends JPanel {
 
     private JTable tblParkplaetze;
     private JTextField txtSuchOrt;
-    private JTextField txtVonDatum;
+    private DatePicker txtVonDatum;
     private JTextField txtVonUhrzeit;
-    private JTextField txtBisDatum;
+    private DatePicker txtBisDatum;
     private JTextField txtBisUhrzeit;
     private JButton btnSuchen;
     private JButton btnBuchen;
@@ -172,9 +200,9 @@ public class KundenDashboardView extends JPanel {
         JPanel content = new JPanel(new GridBagLayout());
         content.setOpaque(false);
 
-        txtVonDatum = createRoundedTextField();
+        txtVonDatum = createLayoutDatePicker();
         txtVonUhrzeit = createRoundedTextField();
-        txtBisDatum = createRoundedTextField();
+        txtBisDatum = createLayoutDatePicker();
         txtBisUhrzeit = createRoundedTextField();
 
         txtVonDatum.setPreferredSize(new Dimension(160, 44));
@@ -408,6 +436,19 @@ public class KundenDashboardView extends JPanel {
         ));
         return field;
     }
+    
+    
+    private DatePicker createLayoutDatePicker() {
+    	DatePickerSettings settings = new DatePickerSettings();
+        settings.setAllowKeyboardEditing(false); 
+    	DatePicker datepicker = new DatePicker(settings);
+    	datepicker.setBorder(BorderFactory.createCompoundBorder(
+                new RoundedLineBorder(new Color(203, 213, 225), 18, 1),
+                new EmptyBorder(8, 12, 8, 12)));
+    	
+		return datepicker;
+    	
+    }
 
     private GridBagConstraints baseGbc() {
         GridBagConstraints gbc = new GridBagConstraints();
@@ -424,9 +465,10 @@ public class KundenDashboardView extends JPanel {
         DateTimeFormatter datumFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         DateTimeFormatter uhrzeitFormat = DateTimeFormatter.ofPattern("HH:mm");
 
-        txtVonDatum.setText(jetzt.format(datumFormat));
+        txtVonDatum.setDateToToday();
+        txtVonDatum.getComponentDateTextField().setEditable(false);
         txtVonUhrzeit.setText(jetzt.format(uhrzeitFormat));
-        txtBisDatum.setText(spaeter.format(datumFormat));
+        txtBisDatum.getComponentDateTextField().setEditable(false);
         txtBisUhrzeit.setText(spaeter.format(uhrzeitFormat));
 
         preisAktualisieren();
@@ -512,7 +554,7 @@ public class KundenDashboardView extends JPanel {
         DateTimeFormatter datumFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         DateTimeFormatter uhrzeitFormat = DateTimeFormatter.ofPattern("HH:mm");
 
-        LocalDate datum = LocalDate.parse(txtVonDatum.getText().trim(), datumFormat);
+        LocalDate datum = txtVonDatum.getDate();
         LocalTime uhrzeit = LocalTime.parse(txtVonUhrzeit.getText().trim(), uhrzeitFormat);
 
         return LocalDateTime.of(datum, uhrzeit);
