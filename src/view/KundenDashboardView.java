@@ -45,6 +45,7 @@ import model.Buchung;
 import model.Parkplatz;
 import com.github.lgooddatepicker.components.DatePicker;
 import com.github.lgooddatepicker.components.DatePickerSettings;
+import com.github.lgooddatepicker.optionalusertools.DateVetoPolicy;
 
 
 public class KundenDashboardView extends JPanel {
@@ -440,8 +441,14 @@ public class KundenDashboardView extends JPanel {
     
     private DatePicker createLayoutDatePicker() {
     	DatePickerSettings settings = new DatePickerSettings();
-        settings.setAllowKeyboardEditing(false); 
+        settings.setAllowKeyboardEditing(false);
     	DatePicker datepicker = new DatePicker(settings);
+    	settings.setVetoPolicy(new DateVetoPolicy() {
+            @Override
+            public boolean isDateAllowed(LocalDate date) {
+                return !date.isBefore(LocalDate.now());
+            }
+        });
     	datepicker.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedLineBorder(new Color(203, 213, 225), 18, 1),
                 new EmptyBorder(8, 12, 8, 12)));
@@ -527,7 +534,7 @@ public class KundenDashboardView extends JPanel {
             LocalDateTime bis = leseBisZeitpunkt();
 
             if (!bis.isAfter(von)) {
-                lblPreis.setText("Preis: Ungültiger Zeitraum");
+                lblPreis.setText("Bitte Datum und Uhrzeit überprüfen!");
                 return;
             }
 
@@ -551,7 +558,7 @@ public class KundenDashboardView extends JPanel {
     }
 
     private LocalDateTime leseVonZeitpunkt() {
-        DateTimeFormatter datumFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+       // DateTimeFormatter datumFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         DateTimeFormatter uhrzeitFormat = DateTimeFormatter.ofPattern("HH:mm");
 
         LocalDate datum = txtVonDatum.getDate();
@@ -561,10 +568,10 @@ public class KundenDashboardView extends JPanel {
     }
 
     private LocalDateTime leseBisZeitpunkt() {
-        DateTimeFormatter datumFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+     //   DateTimeFormatter datumFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         DateTimeFormatter uhrzeitFormat = DateTimeFormatter.ofPattern("HH:mm");
 
-        LocalDate datum = LocalDate.parse(txtBisDatum.getText().trim(), datumFormat);
+        LocalDate datum = txtBisDatum.getDate();
         LocalTime uhrzeit = LocalTime.parse(txtBisUhrzeit.getText().trim(), uhrzeitFormat);
 
         return LocalDateTime.of(datum, uhrzeit);
