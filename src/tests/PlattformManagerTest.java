@@ -19,7 +19,7 @@ public class PlattformManagerTest {
     void setUp() {
         manager = new PlattformManager();
         test = new PlattformManagerTest();
-        p1 = new Parkplatz("1", "Test", "Str", 1, 10.0);
+        p1 = new Parkplatz("1", "Test", "Str", 1, 10.0, 13.0);
         manager.getAlleParkplaetze().add(p1);
         manager.addNutzer(new Kunde("k1", "Max Mustermann", "max@mail.de"));
         manager.addNutzer(new Betreiber("b1", "Anna Betreiber", "anna@mail.de"));
@@ -29,7 +29,8 @@ public class PlattformManagerTest {
                 "Parkhaus Mitte",
                 "Berlin Mitte",
                 50,
-                2.5
+                2.5,
+                3.5
                
         
         );

@@ -581,9 +581,13 @@ public class KundenDashboardView extends JPanel {
                 return;
             }
 
+            String aufschluesselung = manager.getPreisAufschluesselung(ausgewaehlterParkplatz, von, bis);
+
             JOptionPane.showMessageDialog(
                     this,
-                    "Buchung erfolgreich gespeichert.\nBuchungsCode: " + neueBuchung.getBuchungsCode()
+                    "Buchung erfolgreich gespeichert.\n"
+                    + "BuchungsCode: " + neueBuchung.getBuchungsCode() + "\n\n"
+                    + "Preisübersicht:\n" + aufschluesselung
             );
 
             preisAktualisieren();
