@@ -46,14 +46,28 @@ public class MainFrame extends JFrame {
         setzePanel(new LoginView(this, manager));
     }
 
-    // Zeigt die Kundenansicht an
+ // Zeigt die Kundenansicht an
     public void zeigeKundenView() {
-        setzePanel(new KundenDashboardView(manager));
-    }
+            User aktuellerNutzer = manager.getAktuellerNutzer();
+            
+            if (aktuellerNutzer instanceof Kunde) {
+                // Wieder zurück auf den alten Stand bringen:
+                setzePanel(new KundenDashboardView(manager));
+            } else {
+                JOptionPane.showMessageDialog(this, "Fehler: Aktueller Nutzer ist kein Kunde.");
+                zeigeLoginView();
+            }
+        }
 
     // Zeigt die Betreiberansicht an
     public void zeigeBetreiberView() {
-        setzePanel(new BetreiberDashboardView(manager));
+        User aktuellerNutzer = manager.getAktuellerNutzer();
+        if (aktuellerNutzer instanceof Betreiber) {
+            setzePanel(new BetreiberDashboardView((Betreiber) aktuellerNutzer, manager));
+        } else {
+            JOptionPane.showMessageDialog(this, "Fehler: Aktueller Nutzer ist kein Betreiber.");
+            zeigeLoginView();
+        }
     }
 
     /*
