@@ -3,8 +3,8 @@ module BPM {
     requires javafx.fxml;
     requires java.desktop;
     
-    // Bindet den LGoodDatePicker in das Modulsystem ein
-    requires LGoodDatePicker;
+    // Bindet den LGoodDatePicker über den korrekten automatischen Modulnamen ein
+    requires lgooddatepicker;
     
     // Erlaubt JavaFX den Zugriff auf eure Klassen
     opens main to javafx.graphics, javafx.fxml;
