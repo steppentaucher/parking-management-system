@@ -37,6 +37,11 @@ public class KundenDashboardViewTest {
                     1.8,
                     2.5
             ));
+            
+         // NEU: Testkunde registrieren und einloggen,
+            // damit buchungAusfuehren() einen gültigen Kunden vorfindet
+            manager.registriereNutzer("Max Mustermann", "max@test.de", "Kunde");
+            manager.login("max@test.de");
 
             JFrame frame = new JFrame("KundenDashboard Test");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
