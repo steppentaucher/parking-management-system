@@ -82,6 +82,7 @@ public class KundenDashboardView extends JPanel {
     private JTable tblMeineBuchungen;
     private DefaultTableModel modellMeineBuchungen;
     private JButton btnZurueckZurSuche;
+    private JButton btnMeineBuchungen;
 
     public KundenDashboardView(PlattformManager pm) {
         this.manager = pm;
@@ -228,7 +229,15 @@ public class KundenDashboardView extends JPanel {
         textPanel.add(Box.createVerticalStrut(6));
         textPanel.add(lblUntertitel);
 
+        btnMeineBuchungen = new GradientButton("Meine Buchungen");
+        btnMeineBuchungen.setPreferredSize(new Dimension(180, 44));
+        btnMeineBuchungen.addActionListener(e -> {
+            aktualisiereMeineBuchungen();
+            kundenSeitenUmschalter.show(kundenSeitenContainer, "MEINE_BUCHUNGEN");
+        });
+
         header.add(textPanel, BorderLayout.WEST);
+        header.add(btnMeineBuchungen, BorderLayout.EAST);
         return header;
     }
 
