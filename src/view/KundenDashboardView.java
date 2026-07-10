@@ -77,6 +77,11 @@ public class KundenDashboardView extends JPanel {
     private JButton btnPreisakktualisieren;
     private JLabel lblPreis;
     private JLabel lblHinweis;
+    private java.awt.CardLayout kundenSeitenUmschalter;
+    private JPanel kundenSeitenContainer;
+    private JTable tblMeineBuchungen;
+    private DefaultTableModel modellMeineBuchungen;
+    private JButton btnZurueckZurSuche;
 
     public KundenDashboardView(PlattformManager pm) {
         this.manager = pm;
@@ -86,7 +91,17 @@ public class KundenDashboardView extends JPanel {
         setBackground(PAGE_BG);
 
         add(createHeaderPanel(), BorderLayout.NORTH);
-        add(createMainPanel(), BorderLayout.CENTER);
+        kundenSeitenUmschalter = new java.awt.CardLayout();
+        kundenSeitenContainer = new JPanel(kundenSeitenUmschalter);
+        kundenSeitenContainer.setOpaque(false);
+
+        JPanel suchSeite = createMainPanel();
+        JPanel meineBuchungenSeite = createMeineBuchungenSeite();
+
+        kundenSeitenContainer.add(suchSeite, "SUCHEN");
+        kundenSeitenContainer.add(meineBuchungenSeite, "MEINE_BUCHUNGEN");
+
+        add(kundenSeitenContainer, BorderLayout.CENTER);
     }
 
     private JPanel createMainPanel() {
@@ -131,6 +146,65 @@ public class KundenDashboardView extends JPanel {
         });
 
         return root;
+    }
+    
+    private JPanel createMeineBuchungenSeite() {
+        JPanel seite = new JPanel(new BorderLayout(14, 14));
+        seite.setOpaque(false);
+        seite.setBorder(new EmptyBorder(14, 14, 14, 14));
+
+        JPanel kopf = new JPanel(new BorderLayout());
+        kopf.setOpaque(false);
+
+        JLabel titel = new JLabel("Meine gebuchten Parkplätze");
+        titel.setFont(new Font("SansSerif", Font.BOLD, 20));
+        titel.setForeground(TEXT_DARK);
+        kopf.add(titel, BorderLayout.WEST);
+
+        btnZurueckZurSuche = new GradientButton("Neue Buchung");
+        btnZurueckZurSuche.setPreferredSize(new Dimension(210, 44));
+        kopf.add(btnZurueckZurSuche, BorderLayout.EAST);
+        btnZurueckZurSuche.addActionListener(e -> kundenSeitenUmschalter.show(kundenSeitenContainer, "SUCHEN"));
+
+        seite.add(kopf, BorderLayout.NORTH);
+
+        modellMeineBuchungen = new DefaultTableModel(
+            new Object[]{"Buchungscode", "Parkplatz", "Von", "Bis", "Preis (€)"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int col) { return false; }
+        };
+
+        tblMeineBuchungen = new JTable(modellMeineBuchungen);
+        tblMeineBuchungen.setRowHeight(32);
+        tblMeineBuchungen.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        tblMeineBuchungen.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 13));
+        tblMeineBuchungen.getTableHeader().setBackground(TABLE_HEADER_BG);
+
+        JScrollPane scroll = new JScrollPane(tblMeineBuchungen);
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        seite.add(scroll, BorderLayout.CENTER);
+
+        return seite;
+    }
+    
+    private void aktualisiereMeineBuchungen() {
+        modellMeineBuchungen.setRowCount(0);
+
+        if (!(manager.getAktuellerNutzer() instanceof model.Kunde)) {
+            return;
+        }
+
+        model.Kunde kunde = (model.Kunde) manager.getAktuellerNutzer();
+
+        for (Buchung b : kunde.getMeineBuchungen()) {
+            modellMeineBuchungen.addRow(new Object[]{
+                b.getBuchungsCode(),
+                b.getParkplatz().getBezeichnung(),
+                b.getVon(),
+                b.getBis(),
+                String.format("%.2f", b.berechnePreis())
+            });
+        }
     }
 
     private JPanel createHeaderPanel() {
@@ -640,6 +714,8 @@ public class KundenDashboardView extends JPanel {
             );
 
             preisAktualisieren();
+            aktualisiereMeineBuchungen();
+            kundenSeitenUmschalter.show(kundenSeitenContainer, "MEINE_BUCHUNGEN");
 
         } catch (DateTimeParseException e) {
             JOptionPane.showMessageDialog(
