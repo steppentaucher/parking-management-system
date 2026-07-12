@@ -82,6 +82,7 @@ public class KundenDashboardView extends JPanel {
     private JTable tblMeineBuchungen;
     private DefaultTableModel modellMeineBuchungen;
     private JButton btnZurueckZurSuche;
+    private JLabel lblNutzerInfo;
     private JButton btnMeineBuchungen;
 
     public KundenDashboardView(PlattformManager pm) {
@@ -103,6 +104,7 @@ public class KundenDashboardView extends JPanel {
         kundenSeitenContainer.add(meineBuchungenSeite, "MEINE_BUCHUNGEN");
 
         add(kundenSeitenContainer, BorderLayout.CENTER);
+        aktualisiereNutzerInfo();
     }
 
     private JPanel createMainPanel() {
@@ -207,6 +209,21 @@ public class KundenDashboardView extends JPanel {
             });
         }
     }
+    
+    private void aktualisiereNutzerInfo() {
+        if (!(manager.getAktuellerNutzer() instanceof model.Kunde)) {
+            lblNutzerInfo.setText("Kein Nutzer eingeloggt");
+            return;
+        }
+
+        model.Kunde kunde = (model.Kunde) manager.getAktuellerNutzer();
+        int anzahlBuchungen = kunde.getMeineBuchungen().size();
+
+        lblNutzerInfo.setText(
+            "Eingeloggt als: " + kunde.getName()
+            + "   |   Gebuchte Parkplätze: " + anzahlBuchungen
+        );
+    }
 
     private JPanel createHeaderPanel() {
         JPanel header = new GradientPanel();
@@ -238,6 +255,12 @@ public class KundenDashboardView extends JPanel {
 
         header.add(textPanel, BorderLayout.WEST);
         header.add(btnMeineBuchungen, BorderLayout.EAST);
+        lblNutzerInfo = new JLabel();
+        lblNutzerInfo.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        lblNutzerInfo.setForeground(new Color(235, 240, 255));
+        lblNutzerInfo.setHorizontalAlignment(SwingConstants.RIGHT);
+
+        header.add(lblNutzerInfo, BorderLayout.EAST);
         return header;
     }
 
@@ -723,6 +746,7 @@ public class KundenDashboardView extends JPanel {
             );
 
             preisAktualisieren();
+            aktualisiereNutzerInfo();
             aktualisiereMeineBuchungen();
             kundenSeitenUmschalter.show(kundenSeitenContainer, "MEINE_BUCHUNGEN");
 
