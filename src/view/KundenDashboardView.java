@@ -33,6 +33,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingConstants;
 import javax.swing.border.AbstractBorder;
 import javax.swing.border.Border;
@@ -84,6 +85,7 @@ public class KundenDashboardView extends JPanel {
     private JButton btnZurueckZurSuche;
     private JLabel lblNutzerInfo;
     private JButton btnMeineBuchungen;
+    private JButton btnLogout;
 
     public KundenDashboardView(PlattformManager pm) {
         this.manager = pm;
@@ -224,6 +226,15 @@ public class KundenDashboardView extends JPanel {
             + "   |   Gebuchte Parkplätze: " + anzahlBuchungen
         );
     }
+    
+    // Meldet den aktuellen Nutzer ab und wechselt zurück zur Login-Ansicht.
+    private void logout() {
+        manager.logout();
+        java.awt.Window fenster = SwingUtilities.getWindowAncestor(this);
+        if (fenster instanceof MainFrame) {
+            ((MainFrame) fenster).zeigeLoginView();
+        }
+    }
 
     private JPanel createHeaderPanel() {
         JPanel header = new GradientPanel();
@@ -246,6 +257,19 @@ public class KundenDashboardView extends JPanel {
         textPanel.add(Box.createVerticalStrut(6));
         textPanel.add(lblUntertitel);
 
+        // Rechter Bereich: oben die Nutzerinfo, darunter die Buttons nebeneinander
+        JPanel rechterBereich = new JPanel();
+        rechterBereich.setOpaque(false);
+        rechterBereich.setLayout(new BoxLayout(rechterBereich, BoxLayout.Y_AXIS));
+
+        lblNutzerInfo = new JLabel();
+        lblNutzerInfo.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        lblNutzerInfo.setForeground(new Color(235, 240, 255));
+        lblNutzerInfo.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        JPanel buttonReihe = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
+        buttonReihe.setOpaque(false);
+
         btnMeineBuchungen = new GradientButton("Meine Buchungen");
         btnMeineBuchungen.setPreferredSize(new Dimension(180, 44));
         btnMeineBuchungen.addActionListener(e -> {
@@ -253,14 +277,19 @@ public class KundenDashboardView extends JPanel {
             kundenSeitenUmschalter.show(kundenSeitenContainer, "MEINE_BUCHUNGEN");
         });
 
-        header.add(textPanel, BorderLayout.WEST);
-        header.add(btnMeineBuchungen, BorderLayout.EAST);
-        lblNutzerInfo = new JLabel();
-        lblNutzerInfo.setFont(new Font("SansSerif", Font.PLAIN, 13));
-        lblNutzerInfo.setForeground(new Color(235, 240, 255));
-        lblNutzerInfo.setHorizontalAlignment(SwingConstants.RIGHT);
+        btnLogout = new GradientButton("Logout");
+        btnLogout.setPreferredSize(new Dimension(110, 44));
+        btnLogout.addActionListener(e -> logout());
 
-        header.add(lblNutzerInfo, BorderLayout.EAST);
+        buttonReihe.add(btnMeineBuchungen);
+        buttonReihe.add(btnLogout);
+
+        rechterBereich.add(lblNutzerInfo);
+        rechterBereich.add(Box.createVerticalStrut(8));
+        rechterBereich.add(buttonReihe);
+
+        header.add(textPanel, BorderLayout.WEST);
+        header.add(rechterBereich, BorderLayout.EAST);
         return header;
     }
 

@@ -206,6 +206,11 @@ public class PlattformManager {
 		System.out.println("Fehler: Kein Nutzer mit dieser E-Mail gefunden.");
 		return false;
 	}
+	
+	// Meldet den aktuell eingeloggten Nutzer ab.
+	public void logout() {
+		this.aktuellerNutzer = null;
+	}
 
 	public void addNutzer(User user) {
 		if (user != null) {						// Kleine Hilfsmethode zum testen
