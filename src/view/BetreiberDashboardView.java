@@ -23,6 +23,7 @@ public class BetreiberDashboardView extends JPanel {
 	private DefaultTableModel modellParkplaetze;
 	private DefaultTableModel modellBelegung;
 	private JButton buttonAlleBuchungenAnzeigen;
+	private JButton buttonLogout;
 
 	// Farbpalette für ein modernes, flaches Design
 	private final Color HINTERGRUND_FARBE = new Color(245, 247, 250);
@@ -91,8 +92,19 @@ public class BetreiberDashboardView extends JPanel {
 		buttonParkplatzAnlegenOeffnen.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		buttonParkplatzAnlegenOeffnen.addActionListener(e -> seitenUmschalter.show(seitenContainer, "FORMULAR"));
 
-		JPanel buttonPositionierung = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 10));
+		// Logout-Button
+		buttonLogout = new JButton("Logout");
+		buttonLogout.setBackground(AKZENT_FARBE);
+		buttonLogout.setForeground(Color.WHITE);
+		buttonLogout.setFont(new Font("Arial", Font.BOLD, 14));
+		buttonLogout.setFocusPainted(false);
+		buttonLogout.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
+		buttonLogout.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		buttonLogout.addActionListener(e -> logout());
+
+		JPanel buttonPositionierung = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 		buttonPositionierung.setOpaque(false);
+		buttonPositionierung.add(buttonLogout);
 		buttonPositionierung.add(buttonParkplatzAnlegenOeffnen);
 		kopfBereich.add(buttonPositionierung, BorderLayout.EAST);
 
@@ -204,6 +216,15 @@ public class BetreiberDashboardView extends JPanel {
 			// Die ID steht in der ersten Spalte (Index 0)
 			String parkplatzId = tabelleEigeneParkplaetze.getValueAt(ausgewaehlteZeile, 0).toString();
 			befuelleBelegungsTabelle(parkplatzId);
+		}
+	}
+	
+	// Meldet den aktuellen Betreiber ab und wechselt zurück zur Login-Ansicht.
+	private void logout() {
+		manager.logout();
+		java.awt.Window fenster = SwingUtilities.getWindowAncestor(this);
+		if (fenster instanceof MainFrame) {
+			((MainFrame) fenster).zeigeLoginView();
 		}
 	}
 
