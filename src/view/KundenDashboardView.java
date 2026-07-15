@@ -12,14 +12,16 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.RenderingHints;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.geom.RoundRectangle2D;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +30,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -71,9 +74,11 @@ public class KundenDashboardView extends JPanel {
     private JTable tblParkplaetze;
     private JTextField txtSuchOrt;
     private DatePicker txtVonDatum;
-    private JTextField txtVonUhrzeit;
+    private JComboBox<String> cmbVonStunde;
+    private JComboBox<String> cmbVonMinute;
     private DatePicker txtBisDatum;
-    private JTextField txtBisUhrzeit;
+    private JComboBox<String> cmbBisStunde;
+    private JComboBox<String> cmbBisMinute;
     private JButton btnSuchen;
     private JButton btnBuchen;
     private JButton btnJetztSetzen;
@@ -93,6 +98,10 @@ public class KundenDashboardView extends JPanel {
     private JCheckBox chkUeberdacht;
     private JCheckBox chkBehindertengerecht;
     private JCheckBox chkVideoUeberwacht;
+
+    private JPanel topPanel;
+    private JPanel searchCard;
+    private JPanel timeCard;
 
     public KundenDashboardView(PlattformManager pm) {
         this.manager = pm;
@@ -121,23 +130,13 @@ public class KundenDashboardView extends JPanel {
         JPanel root = new JPanel(new BorderLayout(14, 14));
         root.setOpaque(false);
 
-        JPanel topPanel = new JPanel(new GridBagLayout());
+        topPanel = new JPanel(new GridBagLayout());
         topPanel.setOpaque(false);
 
-        GridBagConstraints topGbc = new GridBagConstraints();
-        topGbc.gridy = 0;
-        topGbc.fill = GridBagConstraints.BOTH;
-        topGbc.weighty = 0;
+        searchCard = createSearchCard();
+        timeCard = createTimeCard();
 
-        topGbc.gridx = 0;
-        topGbc.weightx = 0.95;
-        topGbc.insets = new Insets(0, 0, 0, 14);
-        topPanel.add(createSearchCard(), topGbc);
-
-        topGbc.gridx = 1;
-        topGbc.weightx = 1.05;
-        topGbc.insets = new Insets(0, 0, 0, 0);
-        topPanel.add(createTimeCard(), topGbc);
+        baueTopPanelLayout(false);
 
         JPanel centerWrapper = new JPanel(new BorderLayout(0, 14));
         centerWrapper.setOpaque(false);
@@ -158,7 +157,56 @@ public class KundenDashboardView extends JPanel {
             }
         });
 
+        cmbVonStunde.addActionListener(e -> preisAktualisieren());
+        cmbVonMinute.addActionListener(e -> preisAktualisieren());
+        cmbBisStunde.addActionListener(e -> preisAktualisieren());
+        cmbBisMinute.addActionListener(e -> preisAktualisieren());
+        txtVonDatum.addDateChangeListener(e -> preisAktualisieren());
+        txtBisDatum.addDateChangeListener(e -> preisAktualisieren());
+
+        root.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                baueTopPanelLayout(root.getWidth() < 1180);
+            }
+        });
+
         return root;
+    }
+
+    private void baueTopPanelLayout(boolean untereinander) {
+        topPanel.removeAll();
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weighty = 1.0;
+
+        if (untereinander) {
+            gbc.gridx = 0;
+            gbc.gridy = 0;
+            gbc.weightx = 1.0;
+            gbc.insets = new Insets(0, 0, 14, 0);
+            topPanel.add(searchCard, gbc);
+
+            gbc.gridy = 1;
+            gbc.insets = new Insets(0, 0, 0, 0);
+            topPanel.add(timeCard, gbc);
+        } else {
+            gbc.gridy = 0;
+
+            gbc.gridx = 0;
+            gbc.weightx = 1.2;
+            gbc.insets = new Insets(0, 0, 0, 14);
+            topPanel.add(searchCard, gbc);
+
+            gbc.gridx = 1;
+            gbc.weightx = 1.8;
+            gbc.insets = new Insets(0, 0, 0, 0);
+            topPanel.add(timeCard, gbc);
+        }
+
+        topPanel.revalidate();
+        topPanel.repaint();
     }
 
     private JPanel createMeineBuchungenSeite() {
@@ -231,7 +279,9 @@ public class KundenDashboardView extends JPanel {
         model.Kunde kunde = (model.Kunde) manager.getAktuellerNutzer();
         int anzahlBuchungen = kunde.getMeineBuchungen().size();
 
-        lblNutzerInfo.setText("Eingeloggt als: " + kunde.getName() + " | Gebuchte Parkplätze: " + anzahlBuchungen);
+        lblNutzerInfo.setText(
+                "Eingeloggt als: " + kunde.getName()
+                        + " | Gebuchte Parkplätze: " + anzahlBuchungen);
     }
 
     private void logout() {
@@ -308,75 +358,63 @@ public class KundenDashboardView extends JPanel {
         GridBagConstraints gbc = baseGbc();
 
         txtSuchOrt = createRoundedTextField();
-        txtSuchOrt.setPreferredSize(new Dimension(220, 44));
+        txtSuchOrt.setPreferredSize(new Dimension(240, 44));
 
         btnSuchen = new GradientButton("Suchen");
-        btnSuchen.setPreferredSize(new Dimension(130, 44));
+        btnSuchen.setPreferredSize(new Dimension(150, 44));
 
-        chkELaden = createFeatureCheckbox("E-Laden");
-        chkUeberdacht = createFeatureCheckbox("Überdacht");
-        chkBehindertengerecht = createFeatureCheckbox("Behindertengerecht");
-        chkVideoUeberwacht = createFeatureCheckbox("Videoüberwacht");
+        chkELaden = createFeatureCheckBox("E-Laden");
+        chkUeberdacht = createFeatureCheckBox("Überdacht");
+        chkBehindertengerecht = createFeatureCheckBox("Behindertengerecht");
+        chkVideoUeberwacht = createFeatureCheckBox("Videoüberwacht");
 
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
-        gbc.weightx = 1;
+        gbc.weightx = 1.0;
         content.add(createFieldLabel("Ort oder Adresse"), gbc);
 
         gbc.gridy = 1;
         gbc.gridwidth = 1;
-        gbc.weightx = 1;
-        gbc.insets = new Insets(6, 6, 6, 10);
+        gbc.weightx = 1.0;
+        gbc.insets = new Insets(8, 6, 8, 10);
         content.add(txtSuchOrt, gbc);
 
         gbc.gridx = 1;
-        gbc.weightx = 0;
-        gbc.insets = new Insets(6, 0, 6, 6);
+        gbc.weightx = 0.0;
+        gbc.insets = new Insets(8, 0, 8, 6);
         content.add(btnSuchen, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 2;
         gbc.gridwidth = 2;
-        gbc.insets = new Insets(12, 6, 4, 6);
+        gbc.insets = new Insets(14, 6, 6, 6);
         content.add(createFieldLabel("Features"), gbc);
 
-        JPanel filterPanel = new JPanel(new GridBagLayout());
-        filterPanel.setOpaque(false);
-
-        GridBagConstraints fgbc = new GridBagConstraints();
-        fgbc.anchor = GridBagConstraints.WEST;
-        fgbc.insets = new Insets(4, 4, 4, 12);
-        fgbc.gridx = 0;
-        fgbc.gridy = 0;
-        filterPanel.add(chkELaden, fgbc);
-
-        fgbc.gridx = 1;
-        filterPanel.add(chkUeberdacht, fgbc);
-
-        fgbc.gridx = 0;
-        fgbc.gridy = 1;
-        filterPanel.add(chkBehindertengerecht, fgbc);
-
-        fgbc.gridx = 1;
-        filterPanel.add(chkVideoUeberwacht, fgbc);
-
         gbc.gridy = 3;
-        gbc.gridx = 0;
-        gbc.gridwidth = 2;
         gbc.insets = new Insets(2, 6, 6, 6);
-        content.add(filterPanel, gbc);
+        content.add(createFeaturePanel(), gbc);
 
         card.add(content, BorderLayout.CENTER);
         return card;
     }
 
-    private JCheckBox createFeatureCheckbox(String text) {
+    private JPanel createFeaturePanel() {
+        JPanel featurePanel = new JPanel(new GridLayout(2, 2, 18, 12));
+        featurePanel.setOpaque(false);
+        featurePanel.add(chkELaden);
+        featurePanel.add(chkUeberdacht);
+        featurePanel.add(chkBehindertengerecht);
+        featurePanel.add(chkVideoUeberwacht);
+        return featurePanel;
+    }
+
+    private JCheckBox createFeatureCheckBox(String text) {
         JCheckBox checkBox = new JCheckBox(text);
         checkBox.setOpaque(false);
+        checkBox.setFocusPainted(false);
         checkBox.setForeground(TEXT_DARK);
         checkBox.setFont(new Font("SansSerif", Font.PLAIN, 13));
-        checkBox.setFocusPainted(false);
         return checkBox;
     }
 
@@ -388,14 +426,17 @@ public class KundenDashboardView extends JPanel {
         content.setOpaque(false);
 
         txtVonDatum = createLayoutDatePicker();
-        txtVonUhrzeit = createRoundedTextField();
+        cmbVonStunde = createHourComboBox();
+        cmbVonMinute = createMinuteComboBox();
         txtBisDatum = createLayoutDatePicker();
-        txtBisUhrzeit = createRoundedTextField();
+        cmbBisStunde = createHourComboBox();
+        cmbBisMinute = createMinuteComboBox();
 
-        txtVonDatum.setPreferredSize(new Dimension(160, 44));
-        txtVonUhrzeit.setPreferredSize(new Dimension(135, 44));
-        txtBisDatum.setPreferredSize(new Dimension(160, 44));
-        txtBisUhrzeit.setPreferredSize(new Dimension(135, 44));
+        txtVonDatum.setPreferredSize(new Dimension(150, 44));
+        txtBisDatum.setPreferredSize(new Dimension(150, 44));
+
+        JPanel pnlVonZeit = createTimeSelectionPanel(cmbVonStunde, cmbVonMinute);
+        JPanel pnlBisZeit = createTimeSelectionPanel(cmbBisStunde, cmbBisMinute);
 
         btnJetztSetzen = new GradientButton("Mindestzeit ab jetzt setzen");
         btnJetztSetzen.setPreferredSize(new Dimension(210, 42));
@@ -421,15 +462,15 @@ public class KundenDashboardView extends JPanel {
         content.add(txtVonDatum, gbc);
 
         gbc.gridx = 1;
-        content.add(txtVonUhrzeit, gbc);
+        content.add(pnlVonZeit, gbc);
 
         gbc.gridx = 2;
         content.add(txtBisDatum, gbc);
 
         gbc.gridx = 3;
-        content.add(txtBisUhrzeit, gbc);
+        content.add(pnlBisZeit, gbc);
 
-        lblHinweis = new JLabel("Format: Datum = dd.MM.yyyy, Uhrzeit = HH:mm");
+        lblHinweis = new JLabel("Uhrzeit bequem über Stunde- und Minuten-Auswahl setzen");
         lblHinweis.setFont(new Font("SansSerif", Font.PLAIN, 12));
         lblHinweis.setForeground(TEXT_MUTED);
 
@@ -455,7 +496,7 @@ public class KundenDashboardView extends JPanel {
 
         tblParkplaetze = new JTable();
         tblParkplaetze.setModel(new DefaultTableModel(
-                new Object[] { "ID", "Bezeichnung", "Adresse", "Kapazität", "Stundensatz (€)", "Features" }, 0));
+                new Object[] { "ID", "Bezeichnung", "Adresse", "Kapazität", "Stundensatz (€)" }, 0));
 
         tblParkplaetze.setRowHeight(32);
         tblParkplaetze.setFont(new Font("SansSerif", Font.PLAIN, 13));
@@ -475,18 +516,13 @@ public class KundenDashboardView extends JPanel {
 
         applyTableRenderers();
 
-        JLabel lblInfo = new JLabel("Wähle einen Parkplatz aus der Liste aus, damit der Preis berechnet werden kann.");
-        lblInfo.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        lblInfo.setForeground(TEXT_MUTED);
-
         JScrollPane scroll = new JScrollPane(tblParkplaetze);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getViewport().setBackground(Color.WHITE);
         scroll.setPreferredSize(new Dimension(0, 220));
 
-        JPanel inner = new JPanel(new BorderLayout(0, 8));
+        JPanel inner = new JPanel(new BorderLayout());
         inner.setOpaque(false);
-        inner.add(lblInfo, BorderLayout.NORTH);
         inner.add(scroll, BorderLayout.CENTER);
 
         card.add(inner, BorderLayout.CENTER);
@@ -561,14 +597,11 @@ public class KundenDashboardView extends JPanel {
             }
         };
 
-        if (tblParkplaetze.getColumnModel().getColumnCount() >= 6) {
-            tblParkplaetze.getColumnModel().getColumn(0).setCellRenderer(centeredRenderer);
-            tblParkplaetze.getColumnModel().getColumn(1).setCellRenderer(leftRenderer);
-            tblParkplaetze.getColumnModel().getColumn(2).setCellRenderer(leftRenderer);
-            tblParkplaetze.getColumnModel().getColumn(3).setCellRenderer(centeredRenderer);
-            tblParkplaetze.getColumnModel().getColumn(4).setCellRenderer(centeredRenderer);
-            tblParkplaetze.getColumnModel().getColumn(5).setCellRenderer(leftRenderer);
-        }
+        tblParkplaetze.getColumnModel().getColumn(0).setCellRenderer(centeredRenderer);
+        tblParkplaetze.getColumnModel().getColumn(1).setCellRenderer(leftRenderer);
+        tblParkplaetze.getColumnModel().getColumn(2).setCellRenderer(leftRenderer);
+        tblParkplaetze.getColumnModel().getColumn(3).setCellRenderer(centeredRenderer);
+        tblParkplaetze.getColumnModel().getColumn(4).setCellRenderer(centeredRenderer);
     }
 
     private JPanel createCardPanel(String title) {
@@ -620,6 +653,52 @@ public class KundenDashboardView extends JPanel {
         return field;
     }
 
+    private JComboBox<String> createHourComboBox() {
+        JComboBox<String> comboBox = new JComboBox<>();
+        for (int i = 0; i < 24; i++) {
+            comboBox.addItem(String.format("%02d", i));
+        }
+        styleComboBox(comboBox);
+        comboBox.setPreferredSize(new Dimension(72, 44));
+        return comboBox;
+    }
+
+    private JComboBox<String> createMinuteComboBox() {
+        JComboBox<String> comboBox = new JComboBox<>();
+        for (int i = 0; i < 60; i += 5) {
+            comboBox.addItem(String.format("%02d", i));
+        }
+        styleComboBox(comboBox);
+        comboBox.setPreferredSize(new Dimension(72, 44));
+        return comboBox;
+    }
+
+    private void styleComboBox(JComboBox<String> comboBox) {
+        comboBox.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        comboBox.setBackground(Color.WHITE);
+        comboBox.setForeground(TEXT_DARK);
+        comboBox.setFocusable(false);
+        comboBox.setBorder(BorderFactory.createCompoundBorder(
+                new RoundedLineBorder(new Color(203, 213, 225), 18, 1),
+                new EmptyBorder(4, 8, 4, 8)));
+    }
+
+    private JPanel createTimeSelectionPanel(JComboBox<String> stundenBox, JComboBox<String> minutenBox) {
+        JPanel panel = new JPanel(new BorderLayout(6, 0));
+        panel.setOpaque(false);
+
+        JLabel trennzeichen = new JLabel(":");
+        trennzeichen.setFont(new Font("SansSerif", Font.BOLD, 16));
+        trennzeichen.setForeground(TEXT_DARK);
+        trennzeichen.setHorizontalAlignment(SwingConstants.CENTER);
+
+        panel.add(stundenBox, BorderLayout.WEST);
+        panel.add(trennzeichen, BorderLayout.CENTER);
+        panel.add(minutenBox, BorderLayout.EAST);
+
+        return panel;
+    }
+
     private DatePicker createLayoutDatePicker() {
         DatePickerSettings settings = new DatePickerSettings();
         settings.setAllowKeyboardEditing(false);
@@ -649,16 +728,27 @@ public class KundenDashboardView extends JPanel {
         LocalDateTime jetzt = LocalDateTime.now();
         LocalDateTime spaeter = jetzt.plusMinutes(15);
 
-        java.time.format.DateTimeFormatter uhrzeitFormat = java.time.format.DateTimeFormatter.ofPattern("HH:mm");
+        txtVonDatum.setDate(jetzt.toLocalDate());
+        setzeZeitInDropdowns(cmbVonStunde, cmbVonMinute, jetzt.toLocalTime());
 
-        txtVonDatum.setDateToToday();
-        txtVonDatum.getComponentDateTextField().setEditable(false);
-        txtVonUhrzeit.setText(jetzt.format(uhrzeitFormat));
-        txtBisDatum.setDateToToday();
-        txtBisDatum.getComponentDateTextField().setEditable(false);
-        txtBisUhrzeit.setText(spaeter.format(uhrzeitFormat));
+        txtBisDatum.setDate(spaeter.toLocalDate());
+        setzeZeitInDropdowns(cmbBisStunde, cmbBisMinute, spaeter.toLocalTime());
 
         preisAktualisieren();
+    }
+
+    private void setzeZeitInDropdowns(JComboBox<String> stundenBox, JComboBox<String> minutenBox, LocalTime zeit) {
+        int minutenGerundet = ((zeit.getMinute() + 4) / 5) * 5;
+        LocalTime gerundet = zeit.withSecond(0).withNano(0);
+
+        if (minutenGerundet >= 60) {
+            gerundet = gerundet.plusHours(1).withMinute(0);
+        } else {
+            gerundet = gerundet.withMinute(minutenGerundet);
+        }
+
+        stundenBox.setSelectedItem(String.format("%02d", gerundet.getHour()));
+        minutenBox.setSelectedItem(String.format("%02d", gerundet.getMinute()));
     }
 
     private List<String> leseAusgewaehlteFeatures() {
@@ -682,7 +772,7 @@ public class KundenDashboardView extends JPanel {
 
     private void parkplaetzeSuchen() {
         DefaultTableModel model = new DefaultTableModel(
-                new Object[] { "ID", "Bezeichnung", "Adresse", "Kapazität", "Stundensatz (€)", "Features" }, 0) {
+                new Object[] { "ID", "Bezeichnung", "Adresse", "Kapazität", "Stundensatz (€)" }, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -691,7 +781,29 @@ public class KundenDashboardView extends JPanel {
 
         String suchOrt = txtSuchOrt.getText().trim();
         List<String> featureFilter = leseAusgewaehlteFeatures();
-        List<Parkplatz> treffer = manager.sucheParkplaetze(suchOrt, featureFilter);
+
+        LocalDateTime von = null;
+        LocalDateTime bis = null;
+        try {
+            von = leseVonZeitpunkt();
+            bis = leseBisZeitpunkt();
+        } catch (Exception e) {
+        }
+
+        List<Parkplatz> treffer;
+        try {
+            treffer = manager.sucheParkplaetze(suchOrt, featureFilter);
+        } catch (Exception e) {
+            treffer = new ArrayList<>();
+            for (Parkplatz p : manager.getAlleParkplaetze()) {
+                boolean ortPasst = suchOrt.isBlank()
+                        || p.getAdresse().toLowerCase().contains(suchOrt.toLowerCase())
+                        || p.getBezeichnung().toLowerCase().contains(suchOrt.toLowerCase());
+                if (ortPasst) {
+                    treffer.add(p);
+                }
+            }
+        }
 
         for (Parkplatz p : treffer) {
             model.addRow(new Object[] {
@@ -699,8 +811,7 @@ public class KundenDashboardView extends JPanel {
                     p.getBezeichnung(),
                     p.getAdresse(),
                     p.getGesamtKapazitaet(),
-                    String.format("%.2f", p.getStundenSatz()),
-                    p.getFeaturesAlsText()
+                    String.format("%.2f", berechneAngezeigtenStundensatz(p, von, bis))
             });
         }
 
@@ -711,6 +822,20 @@ public class KundenDashboardView extends JPanel {
             lblPreis.setText("Preis: -");
             JOptionPane.showMessageDialog(this, "Keine passenden Parkplätze gefunden.");
         }
+    }
+
+    private double berechneAngezeigtenStundensatz(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
+        if (von == null || bis == null || !bis.isAfter(von)) {
+            return p.getStundenSatz();
+        }
+
+        long gesamtMinuten = Duration.between(von, bis).toMinutes();
+        if (gesamtMinuten <= 0) {
+            return p.getStundenSatz();
+        }
+
+        double gesamtPreis = manager.berechnePreis(p, von, bis);
+        return gesamtPreis / (gesamtMinuten / 60.0);
     }
 
     private void preisAktualisieren() {
@@ -741,10 +866,22 @@ public class KundenDashboardView extends JPanel {
             double preis = manager.berechnePreis(ausgewaehlterParkplatz, von, bis);
             lblPreis.setText(String.format("Preis: %.2f €", preis));
 
-        } catch (DateTimeParseException e) {
-            lblPreis.setText("Preis: Bitte Datum und Uhrzeit eingeben");
+            aktualisiereStundensaetzeInTabelle(von, bis);
+
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Fehler bei der Preisberechnung.");
+            lblPreis.setText("Preis: -");
+        }
+    }
+
+    private void aktualisiereStundensaetzeInTabelle(LocalDateTime von, LocalDateTime bis) {
+        DefaultTableModel model = (DefaultTableModel) tblParkplaetze.getModel();
+
+        for (int i = 0; i < model.getRowCount(); i++) {
+            String parkplatzId = model.getValueAt(i, 0).toString();
+            Parkplatz parkplatz = findeParkplatzNachId(parkplatzId);
+            if (parkplatz != null) {
+                model.setValueAt(String.format("%.2f", berechneAngezeigtenStundensatz(parkplatz, von, bis)), i, 4);
+            }
         }
     }
 
@@ -758,17 +895,17 @@ public class KundenDashboardView extends JPanel {
     }
 
     private LocalDateTime leseVonZeitpunkt() {
-        java.time.format.DateTimeFormatter uhrzeitFormat = java.time.format.DateTimeFormatter.ofPattern("HH:mm");
         LocalDate datum = txtVonDatum.getDate();
-        LocalTime uhrzeit = LocalTime.parse(txtVonUhrzeit.getText().trim(), uhrzeitFormat);
-        return LocalDateTime.of(datum, uhrzeit);
+        int stunde = Integer.parseInt((String) cmbVonStunde.getSelectedItem());
+        int minute = Integer.parseInt((String) cmbVonMinute.getSelectedItem());
+        return LocalDateTime.of(datum, LocalTime.of(stunde, minute));
     }
 
     private LocalDateTime leseBisZeitpunkt() {
-        java.time.format.DateTimeFormatter uhrzeitFormat = java.time.format.DateTimeFormatter.ofPattern("HH:mm");
         LocalDate datum = txtBisDatum.getDate();
-        LocalTime uhrzeit = LocalTime.parse(txtBisUhrzeit.getText().trim(), uhrzeitFormat);
-        return LocalDateTime.of(datum, uhrzeit);
+        int stunde = Integer.parseInt((String) cmbBisStunde.getSelectedItem());
+        int minute = Integer.parseInt((String) cmbBisMinute.getSelectedItem());
+        return LocalDateTime.of(datum, LocalTime.of(stunde, minute));
     }
 
     private void buchungAusfuehren() {
@@ -838,9 +975,6 @@ public class KundenDashboardView extends JPanel {
             aktualisiereMeineBuchungen();
             kundenSeitenUmschalter.show(kundenSeitenContainer, "MEINE_BUCHUNGEN");
 
-        } catch (DateTimeParseException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Bitte gib das Datum im Format dd.MM.yyyy und die Uhrzeit im Format HH:mm ein.");
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Fehler beim Buchen.");
         }
