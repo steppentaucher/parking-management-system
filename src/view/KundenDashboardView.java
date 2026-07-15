@@ -19,13 +19,15 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -33,21 +35,21 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.AbstractBorder;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-import controller.PlattformManager;
-import model.Buchung;
-import model.Parkplatz;
 import com.github.lgooddatepicker.components.DatePicker;
 import com.github.lgooddatepicker.components.DatePickerSettings;
 import com.github.lgooddatepicker.optionalusertools.DateVetoPolicy;
 
+import controller.PlattformManager;
+import model.Buchung;
+import model.Parkplatz;
 
 public class KundenDashboardView extends JPanel {
     private static final long serialVersionUID = 1L;
@@ -87,6 +89,11 @@ public class KundenDashboardView extends JPanel {
     private JButton btnMeineBuchungen;
     private JButton btnLogout;
 
+    private JCheckBox chkELaden;
+    private JCheckBox chkUeberdacht;
+    private JCheckBox chkBehindertengerecht;
+    private JCheckBox chkVideoUeberwacht;
+
     public KundenDashboardView(PlattformManager pm) {
         this.manager = pm;
 
@@ -95,6 +102,7 @@ public class KundenDashboardView extends JPanel {
         setBackground(PAGE_BG);
 
         add(createHeaderPanel(), BorderLayout.NORTH);
+
         kundenSeitenUmschalter = new java.awt.CardLayout();
         kundenSeitenContainer = new JPanel(kundenSeitenUmschalter);
         kundenSeitenContainer.setOpaque(false);
@@ -122,12 +130,12 @@ public class KundenDashboardView extends JPanel {
         topGbc.weighty = 0;
 
         topGbc.gridx = 0;
-        topGbc.weightx = 0.82;
+        topGbc.weightx = 0.95;
         topGbc.insets = new Insets(0, 0, 0, 14);
         topPanel.add(createSearchCard(), topGbc);
 
         topGbc.gridx = 1;
-        topGbc.weightx = 1.68;
+        topGbc.weightx = 1.05;
         topGbc.insets = new Insets(0, 0, 0, 0);
         topPanel.add(createTimeCard(), topGbc);
 
@@ -152,7 +160,7 @@ public class KundenDashboardView extends JPanel {
 
         return root;
     }
-    
+
     private JPanel createMeineBuchungenSeite() {
         JPanel seite = new JPanel(new BorderLayout(14, 14));
         seite.setOpaque(false);
@@ -174,9 +182,11 @@ public class KundenDashboardView extends JPanel {
         seite.add(kopf, BorderLayout.NORTH);
 
         modellMeineBuchungen = new DefaultTableModel(
-            new Object[]{"Buchungscode", "Parkplatz", "Von", "Bis", "Preis (€)"}, 0) {
+                new Object[] { "Buchungscode", "Parkplatz", "Von", "Bis", "Preis (€)" }, 0) {
             @Override
-            public boolean isCellEditable(int row, int col) { return false; }
+            public boolean isCellEditable(int row, int col) {
+                return false;
+            }
         };
 
         tblMeineBuchungen = new JTable(modellMeineBuchungen);
@@ -191,7 +201,7 @@ public class KundenDashboardView extends JPanel {
 
         return seite;
     }
-    
+
     private void aktualisiereMeineBuchungen() {
         modellMeineBuchungen.setRowCount(0);
 
@@ -202,16 +212,16 @@ public class KundenDashboardView extends JPanel {
         model.Kunde kunde = (model.Kunde) manager.getAktuellerNutzer();
 
         for (Buchung b : kunde.getMeineBuchungen()) {
-            modellMeineBuchungen.addRow(new Object[]{
-                b.getBuchungsCode(),
-                b.getParkplatz().getBezeichnung(),
-                b.getVon(),
-                b.getBis(),
-                String.format("%.2f", b.berechnePreis())
+            modellMeineBuchungen.addRow(new Object[] {
+                    b.getBuchungsCode(),
+                    b.getParkplatz().getBezeichnung(),
+                    b.getVon(),
+                    b.getBis(),
+                    String.format("%.2f", b.berechnePreis())
             });
         }
     }
-    
+
     private void aktualisiereNutzerInfo() {
         if (!(manager.getAktuellerNutzer() instanceof model.Kunde)) {
             lblNutzerInfo.setText("Kein Nutzer eingeloggt");
@@ -221,13 +231,9 @@ public class KundenDashboardView extends JPanel {
         model.Kunde kunde = (model.Kunde) manager.getAktuellerNutzer();
         int anzahlBuchungen = kunde.getMeineBuchungen().size();
 
-        lblNutzerInfo.setText(
-            "Eingeloggt als: " + kunde.getName()
-            + "   |   Gebuchte Parkplätze: " + anzahlBuchungen
-        );
+        lblNutzerInfo.setText("Eingeloggt als: " + kunde.getName() + " | Gebuchte Parkplätze: " + anzahlBuchungen);
     }
-    
-    // Meldet den aktuellen Nutzer ab und wechselt zurück zur Login-Ansicht.
+
     private void logout() {
         manager.logout();
         java.awt.Window fenster = SwingUtilities.getWindowAncestor(this);
@@ -257,7 +263,6 @@ public class KundenDashboardView extends JPanel {
         textPanel.add(Box.createVerticalStrut(6));
         textPanel.add(lblUntertitel);
 
-        // Rechter Bereich: oben die Nutzerinfo, darunter die Buttons nebeneinander
         JPanel rechterBereich = new JPanel();
         rechterBereich.setOpaque(false);
         rechterBereich.setLayout(new BoxLayout(rechterBereich, BoxLayout.Y_AXIS));
@@ -294,7 +299,7 @@ public class KundenDashboardView extends JPanel {
     }
 
     private JPanel createSearchCard() {
-        JPanel card = createCardPanel("Standortsuche");
+        JPanel card = createCardPanel("Standort & Filter");
         card.setLayout(new BorderLayout());
 
         JPanel content = new JPanel(new GridBagLayout());
@@ -307,6 +312,11 @@ public class KundenDashboardView extends JPanel {
 
         btnSuchen = new GradientButton("Suchen");
         btnSuchen.setPreferredSize(new Dimension(130, 44));
+
+        chkELaden = createFeatureCheckbox("E-Laden");
+        chkUeberdacht = createFeatureCheckbox("Überdacht");
+        chkBehindertengerecht = createFeatureCheckbox("Behindertengerecht");
+        chkVideoUeberwacht = createFeatureCheckbox("Videoüberwacht");
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -325,8 +335,49 @@ public class KundenDashboardView extends JPanel {
         gbc.insets = new Insets(6, 0, 6, 6);
         content.add(btnSuchen, gbc);
 
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        gbc.insets = new Insets(12, 6, 4, 6);
+        content.add(createFieldLabel("Features"), gbc);
+
+        JPanel filterPanel = new JPanel(new GridBagLayout());
+        filterPanel.setOpaque(false);
+
+        GridBagConstraints fgbc = new GridBagConstraints();
+        fgbc.anchor = GridBagConstraints.WEST;
+        fgbc.insets = new Insets(4, 4, 4, 12);
+        fgbc.gridx = 0;
+        fgbc.gridy = 0;
+        filterPanel.add(chkELaden, fgbc);
+
+        fgbc.gridx = 1;
+        filterPanel.add(chkUeberdacht, fgbc);
+
+        fgbc.gridx = 0;
+        fgbc.gridy = 1;
+        filterPanel.add(chkBehindertengerecht, fgbc);
+
+        fgbc.gridx = 1;
+        filterPanel.add(chkVideoUeberwacht, fgbc);
+
+        gbc.gridy = 3;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        gbc.insets = new Insets(2, 6, 6, 6);
+        content.add(filterPanel, gbc);
+
         card.add(content, BorderLayout.CENTER);
         return card;
+    }
+
+    private JCheckBox createFeatureCheckbox(String text) {
+        JCheckBox checkBox = new JCheckBox(text);
+        checkBox.setOpaque(false);
+        checkBox.setForeground(TEXT_DARK);
+        checkBox.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        checkBox.setFocusPainted(false);
+        return checkBox;
     }
 
     private JPanel createTimeCard() {
@@ -348,7 +399,6 @@ public class KundenDashboardView extends JPanel {
 
         btnJetztSetzen = new GradientButton("Mindestzeit ab jetzt setzen");
         btnJetztSetzen.setPreferredSize(new Dimension(210, 42));
-        
 
         GridBagConstraints gbc = baseGbc();
         gbc.weightx = 1.0;
@@ -405,8 +455,8 @@ public class KundenDashboardView extends JPanel {
 
         tblParkplaetze = new JTable();
         tblParkplaetze.setModel(new DefaultTableModel(
-                new Object[]{"ID", "Bezeichnung", "Adresse", "Kapazität", "Stundensatz (€)"}, 0
-        ));
+                new Object[] { "ID", "Bezeichnung", "Adresse", "Kapazität", "Stundensatz (€)", "Features" }, 0));
+
         tblParkplaetze.setRowHeight(32);
         tblParkplaetze.setFont(new Font("SansSerif", Font.PLAIN, 13));
         tblParkplaetze.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -458,12 +508,11 @@ public class KundenDashboardView extends JPanel {
         lblPreis.setFont(new Font("SansSerif", Font.BOLD, 20));
         lblPreis.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedLineBorder(new Color(199, 210, 254), 20, 1),
-                new EmptyBorder(12, 18, 12, 18)
-        ));
+                new EmptyBorder(12, 18, 12, 18)));
 
         btnBuchen = new GradientButton("Jetzt buchen");
         btnBuchen.setPreferredSize(new Dimension(210, 52));
-        
+
         btnPreisakktualisieren = new GradientButton("Preis aktualisieren");
         btnPreisakktualisieren.setPreferredSize(new Dimension(190, 42));
 
@@ -512,11 +561,14 @@ public class KundenDashboardView extends JPanel {
             }
         };
 
-        tblParkplaetze.getColumnModel().getColumn(0).setCellRenderer(centeredRenderer);
-        tblParkplaetze.getColumnModel().getColumn(1).setCellRenderer(leftRenderer);
-        tblParkplaetze.getColumnModel().getColumn(2).setCellRenderer(leftRenderer);
-        tblParkplaetze.getColumnModel().getColumn(3).setCellRenderer(centeredRenderer);
-        tblParkplaetze.getColumnModel().getColumn(4).setCellRenderer(centeredRenderer);
+        if (tblParkplaetze.getColumnModel().getColumnCount() >= 6) {
+            tblParkplaetze.getColumnModel().getColumn(0).setCellRenderer(centeredRenderer);
+            tblParkplaetze.getColumnModel().getColumn(1).setCellRenderer(leftRenderer);
+            tblParkplaetze.getColumnModel().getColumn(2).setCellRenderer(leftRenderer);
+            tblParkplaetze.getColumnModel().getColumn(3).setCellRenderer(centeredRenderer);
+            tblParkplaetze.getColumnModel().getColumn(4).setCellRenderer(centeredRenderer);
+            tblParkplaetze.getColumnModel().getColumn(5).setCellRenderer(leftRenderer);
+        }
     }
 
     private JPanel createCardPanel(String title) {
@@ -531,8 +583,7 @@ public class KundenDashboardView extends JPanel {
         card.setBackground(CARD_BG);
         card.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedLineBorder(BORDER, 22, 1),
-                new EmptyBorder(14, 14, 14, 14)
-        ));
+                new EmptyBorder(14, 14, 14, 14)));
         return card;
     }
 
@@ -546,11 +597,8 @@ public class KundenDashboardView extends JPanel {
                                 0,
                                 0,
                                 new Font("SansSerif", Font.BOLD, 14),
-                                TEXT_DARK
-                        ),
-                        new EmptyBorder(12, 12, 12, 12)
-                )
-        );
+                                TEXT_DARK),
+                        new EmptyBorder(12, 12, 12, 12)));
     }
 
     private JLabel createFieldLabel(String text) {
@@ -568,28 +616,25 @@ public class KundenDashboardView extends JPanel {
         field.setCaretColor(PRIMARY_DARK);
         field.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedLineBorder(new Color(203, 213, 225), 18, 1),
-                new EmptyBorder(8, 12, 8, 12)
-        ));
+                new EmptyBorder(8, 12, 8, 12)));
         return field;
     }
-    
-    
+
     private DatePicker createLayoutDatePicker() {
-    	DatePickerSettings settings = new DatePickerSettings();
+        DatePickerSettings settings = new DatePickerSettings();
         settings.setAllowKeyboardEditing(false);
-    	DatePicker datepicker = new DatePicker(settings);
-    	settings.setVetoPolicy(new DateVetoPolicy() {
+        DatePicker datepicker = new DatePicker(settings);
+        settings.setVetoPolicy(new DateVetoPolicy() {
             @Override
             public boolean isDateAllowed(LocalDate date) {
                 return !date.isBefore(LocalDate.now());
             }
         });
-    	datepicker.setBorder(BorderFactory.createCompoundBorder(
+        datepicker.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedLineBorder(new Color(203, 213, 225), 18, 1),
                 new EmptyBorder(8, 12, 8, 12)));
-    	
-		return datepicker;
-    	
+
+        return datepicker;
     }
 
     private GridBagConstraints baseGbc() {
@@ -604,39 +649,59 @@ public class KundenDashboardView extends JPanel {
         LocalDateTime jetzt = LocalDateTime.now();
         LocalDateTime spaeter = jetzt.plusMinutes(15);
 
-        DateTimeFormatter datumFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-        DateTimeFormatter uhrzeitFormat = DateTimeFormatter.ofPattern("HH:mm");
+        java.time.format.DateTimeFormatter uhrzeitFormat = java.time.format.DateTimeFormatter.ofPattern("HH:mm");
 
         txtVonDatum.setDateToToday();
         txtVonDatum.getComponentDateTextField().setEditable(false);
         txtVonUhrzeit.setText(jetzt.format(uhrzeitFormat));
+        txtBisDatum.setDateToToday();
         txtBisDatum.getComponentDateTextField().setEditable(false);
         txtBisUhrzeit.setText(spaeter.format(uhrzeitFormat));
 
         preisAktualisieren();
     }
 
+    private List<String> leseAusgewaehlteFeatures() {
+        List<String> features = new ArrayList<>();
+
+        if (chkELaden.isSelected()) {
+            features.add("E-Laden");
+        }
+        if (chkUeberdacht.isSelected()) {
+            features.add("Überdacht");
+        }
+        if (chkBehindertengerecht.isSelected()) {
+            features.add("Behindertengerecht");
+        }
+        if (chkVideoUeberwacht.isSelected()) {
+            features.add("Videoüberwacht");
+        }
+
+        return features;
+    }
+
     private void parkplaetzeSuchen() {
         DefaultTableModel model = new DefaultTableModel(
-                new Object[]{"ID", "Bezeichnung", "Adresse", "Kapazität", "Stundensatz (€)"}, 0) {
+                new Object[] { "ID", "Bezeichnung", "Adresse", "Kapazität", "Stundensatz (€)", "Features" }, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
 
-        String suchOrt = txtSuchOrt.getText().trim().toLowerCase();
+        String suchOrt = txtSuchOrt.getText().trim();
+        List<String> featureFilter = leseAusgewaehlteFeatures();
+        List<Parkplatz> treffer = manager.sucheParkplaetze(suchOrt, featureFilter);
 
-        for (Parkplatz p : manager.getAlleParkplaetze()) {
-            if (suchOrt.isEmpty() || p.getAdresse().toLowerCase().contains(suchOrt)) {
-                model.addRow(new Object[]{
-                        p.getId(),
-                        p.getBezeichnung(),
-                        p.getAdresse(),
-                        p.getGesamtKapazitaet(),
-                        String.format("%.2f", p.getStundenSatz())
-                });
-            }
+        for (Parkplatz p : treffer) {
+            model.addRow(new Object[] {
+                    p.getId(),
+                    p.getBezeichnung(),
+                    p.getAdresse(),
+                    p.getGesamtKapazitaet(),
+                    String.format("%.2f", p.getStundenSatz()),
+                    p.getFeaturesAlsText()
+            });
         }
 
         tblParkplaetze.setModel(model);
@@ -693,22 +758,16 @@ public class KundenDashboardView extends JPanel {
     }
 
     private LocalDateTime leseVonZeitpunkt() {
-       // DateTimeFormatter datumFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-        DateTimeFormatter uhrzeitFormat = DateTimeFormatter.ofPattern("HH:mm");
-
+        java.time.format.DateTimeFormatter uhrzeitFormat = java.time.format.DateTimeFormatter.ofPattern("HH:mm");
         LocalDate datum = txtVonDatum.getDate();
         LocalTime uhrzeit = LocalTime.parse(txtVonUhrzeit.getText().trim(), uhrzeitFormat);
-
         return LocalDateTime.of(datum, uhrzeit);
     }
 
     private LocalDateTime leseBisZeitpunkt() {
-     //   DateTimeFormatter datumFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-        DateTimeFormatter uhrzeitFormat = DateTimeFormatter.ofPattern("HH:mm");
-
+        java.time.format.DateTimeFormatter uhrzeitFormat = java.time.format.DateTimeFormatter.ofPattern("HH:mm");
         LocalDate datum = txtBisDatum.getDate();
         LocalTime uhrzeit = LocalTime.parse(txtBisUhrzeit.getText().trim(), uhrzeitFormat);
-
         return LocalDateTime.of(datum, uhrzeit);
     }
 
@@ -770,8 +829,8 @@ public class KundenDashboardView extends JPanel {
             JOptionPane.showMessageDialog(
                     this,
                     "Buchung erfolgreich gespeichert.\n"
-                    + "BuchungsCode: " + neueBuchung.getBuchungsCode() + "\n\n"
-                    + "Preisübersicht:\n" + aufschluesselung
+                            + "BuchungsCode: " + neueBuchung.getBuchungsCode() + "\n\n"
+                            + "Preisübersicht:\n" + aufschluesselung
             );
 
             preisAktualisieren();
@@ -780,10 +839,8 @@ public class KundenDashboardView extends JPanel {
             kundenSeitenUmschalter.show(kundenSeitenContainer, "MEINE_BUCHUNGEN");
 
         } catch (DateTimeParseException e) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Bitte gib das Datum im Format dd.MM.yyyy und die Uhrzeit im Format HH:mm ein."
-            );
+            JOptionPane.showMessageDialog(this,
+                    "Bitte gib das Datum im Format dd.MM.yyyy und die Uhrzeit im Format HH:mm ein.");
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Fehler beim Buchen.");
         }
@@ -826,8 +883,7 @@ public class KundenDashboardView extends JPanel {
                     width - 1.0,
                     height - 1.0,
                     radius,
-                    radius
-            ));
+                    radius));
             g2.dispose();
         }
     }
@@ -872,8 +928,7 @@ public class KundenDashboardView extends JPanel {
             g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
             GradientPaint gp = new GradientPaint(
                     0, 0, new Color(99, 102, 241),
-                    getWidth(), getHeight(), new Color(59, 130, 246)
-            );
+                    getWidth(), getHeight(), new Color(59, 130, 246));
             g2.setPaint(gp);
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 26, 26);
             g2.dispose();

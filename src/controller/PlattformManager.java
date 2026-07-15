@@ -1,9 +1,10 @@
 package controller;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.regex.Pattern;//Email Format check bei Registrierung
+import java.util.regex.Pattern;
 
 import model.Betreiber;
 import model.Buchung;
@@ -12,141 +13,131 @@ import model.Parkplatz;
 import model.User;
 
 public class PlattformManager {
-	private List<Parkplatz> alleParkplaetze;
-	private List<Buchung> alleBuchungen;
-	private List<User> alleNutzer;
-	private User aktuellerNutzer;
+    private List<Parkplatz> alleParkplaetze;
+    private List<Buchung> alleBuchungen;
+    private List<User> alleNutzer;
+    private User aktuellerNutzer;
 
-	//Email Format, damit bei Registrierung ausschließlich mindestens ein Zeichen + @ + Domaene + Endung (bsp. de) akzeptiert wird
-	private static final Pattern EMAIL_PATTERN =
-	        Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    private static final Pattern EMAIL_PATTERN =
+            Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
-	public PlattformManager() {
-		this.alleParkplaetze = new java.util.ArrayList<>();
-		this.alleBuchungen = new java.util.ArrayList<>();
-		this.alleNutzer = new java.util.ArrayList<>();
-    	this.aktuellerNutzer = null;
-	}
+    public PlattformManager() {
+        this.alleParkplaetze = new ArrayList<>();
+        this.alleBuchungen = new ArrayList<>();
+        this.alleNutzer = new ArrayList<>();
+        this.aktuellerNutzer = null;
+    }
 
     public void storniereBuchung(Buchung b) {
-
-        // Akzeptanzkriterium 1: Nur der Besitzer (Kunde) der Buchung kann diese stornieren.
-        // Wir prüfen, ob überhaupt jemand eingeloggt ist und ob dieser mit dem Kunden der Buchung übereinstimmt.
         if (this.aktuellerNutzer == null || !this.aktuellerNutzer.equals(b.getKunde())) {
-            // Eine SecurityException signalisiert eine fehlende Berechtigung
             throw new SecurityException("Abbruch: Nur der Besitzer der Buchung darf diese stornieren.");
         }
 
-        // Akzeptanzkriterium 2: Das Buchung-Objekt wird aus allen Listen entfernt.
-
-        // a) Aus der globalen Liste des PlattformManagers entfernen
         this.alleBuchungen.remove(b);
 
-        // b) Aus der persönlichen Liste "meineBuchungen" des Kunden entfernen
-        // Da wir oben geprüft haben, dass der aktuelle Nutzer der Besitzer ist,
-        // können wir ihn sicher zu einem "Kunde"-Objekt casten.
         Kunde betroffenerKunde = (Kunde) this.aktuellerNutzer;
         betroffenerKunde.getMeineBuchungen().remove(b);
-
-        // Akzeptanzkriterium 3: Die Verfügbarkeitsprüfung (US4) erkennt den Platz sofort wieder als frei.
-        // -> Automatisch erfüllt! Da das Buchungsobjekt vollständig aus 'alleBuchungen' gelöscht wurde,
-        // wird die Methode 'verfuegbarkeitPruefen' diesen Zeitraum bei einer erneuten Abfrage als leer/frei betrachten.
 
         System.out.println("Buchung erfolgreich storniert.");
     }
 
+    public boolean verfuegbarkeitPruefen(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
+        int count = 0;
 
+        for (Buchung b : alleBuchungen) {
+            if (b.getParkplatz().getId().equals(p.getId())) {
+                if (!(bis.isBefore(b.getVon()) || bis.isEqual(b.getVon())
+                        || von.isAfter(b.getBis()) || von.isEqual(b.getBis()))) {
+                    count++;
+                }
+            }
+        }
 
-	public boolean verfuegbarkeitPruefen(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
-	    int count = 0;
-	    for (Buchung b : alleBuchungen) {
-	        if (b.getParkplatz().getId().equals(p.getId())) {
+        return count < p.getGesamtKapazitaet();
+    }
 
-	            if (!(bis.isBefore(b.getVon()) || bis.isEqual(b.getVon()) || von.isAfter(b.getBis()) || von.isEqual(b.getBis()))) {
-	                count++;
-	            }
-	        }
-	    }
+    public double berechnePreis(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
+        Buchung testBuchung = new Buchung("test", p, null, von, bis);
+        return testBuchung.berechnePreis();
+    }
 
-	    return count < p.getGesamtKapazitaet();
-
-	}
-
-
-	public double berechnePreis(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
-		Buchung testBuchung = new Buchung("test", p, null, von, bis);
-		return testBuchung.berechnePreis();
-	}
-
-
-	public String getPreisAufschluesselung(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
-		Buchung testBuchung = new Buchung("test", p, null, von, bis);
-		return testBuchung.getPreisAufschluesselung();
-	}
+    public String getPreisAufschluesselung(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
+        Buchung testBuchung = new Buchung("test", p, null, von, bis);
+        return testBuchung.getPreisAufschluesselung();
+    }
 
     public Buchung bucheParkplatz(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
+        if (!(aktuellerNutzer instanceof Kunde)) {
+            throw new IllegalStateException("Nur Kunden können einen Parkplatz buchen.");
+        }
 
-    	if (!(aktuellerNutzer instanceof Kunde)) {
-    	    throw new IllegalStateException("Nur Kunden können einen Parkplatz buchen.");
-    	}
+        if (p == null || von == null || bis == null) {
+            throw new IllegalArgumentException("Parkplatz und Zeitraum dürfen nicht null sein.");
+        }
 
-    	if (p == null || von == null || bis == null) {
-    	    throw new IllegalArgumentException("Parkplatz und Zeitraum dürfen nicht null sein.");
-    	}
+        if (!bis.isAfter(von)) {
+            throw new IllegalArgumentException("Die Endzeit muss nach der Startzeit liegen.");
+        }
 
-    	if (!bis.isAfter(von)) {
-    	    throw new IllegalArgumentException("Die Endzeit muss nach der Startzeit liegen.");
-    	}
+        Buchung pruefBuchung = new Buchung("test", p, (Kunde) aktuellerNutzer, von, bis);
 
-    	Buchung pruefBuchung = new Buchung("test", p, (Kunde) aktuellerNutzer, von, bis);
+        if (!pruefBuchung.istMindestdauerErfuellt()) {
+            throw new IllegalArgumentException("Die Mindestbuchungsdauer beträgt 15 Minuten.");
+        }
 
-    	if (!pruefBuchung.istMindestdauerErfuellt()) {
-    	    throw new IllegalArgumentException("Die Mindestbuchungsdauer beträgt 15 Minuten.");
-    	}
+        if (!verfuegbarkeitPruefen(p, von, bis)) {
+            return null;
+        }
 
-    	if (!verfuegbarkeitPruefen(p, von, bis)) {
-    	    return null;
-    	}
+        String code = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        Kunde kunde = (Kunde) aktuellerNutzer;
+        Buchung neueBuchung = new Buchung(code, p, kunde, von, bis);
 
-    	String code = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-    	Kunde kunde = (Kunde) aktuellerNutzer;
-    	Buchung neueBuchung = new Buchung(code, p, kunde, von, bis);
+        alleBuchungen.add(neueBuchung);
+        kunde.addBuchung(neueBuchung);
 
-    	alleBuchungen.add(neueBuchung);
-    	kunde.addBuchung(neueBuchung);
-
-    	return neueBuchung;
+        return neueBuchung;
     }
-    
-    
+
     public void parkplatzAnlegen(Parkplatz p) {
-		// AK1 (Prüfung): Nur ein eingeloggter Betreiber darf einen Parkplatz anlegen.
-		if (!(aktuellerNutzer instanceof Betreiber)) {
-			throw new IllegalStateException("Nur Betreiber dürfen Parkplätze anlegen.");
-		}
+        if (!(aktuellerNutzer instanceof Betreiber)) {
+            throw new IllegalStateException("Nur Betreiber dürfen Parkplätze anlegen.");
+        }
 
-		// Prüfen, ob bereits ein Parkplatz mit genau denselben Eigenschaften existiert.
-		// Die ID wird nicht verglichen, da sie zufällig erzeugt wird und immer neu ist.
-		for (Parkplatz vorhanden : alleParkplaetze) {
-			if (vorhanden.getBezeichnung().equals(p.getBezeichnung())
-					&& vorhanden.getAdresse().equals(p.getAdresse())
-					&& vorhanden.getGesamtKapazitaet() == p.getGesamtKapazitaet()
-					&& vorhanden.getStundenSatz() == p.getStundenSatz()
-					&& vorhanden.getSonderSatz() == p.getSonderSatz()) {
-				throw new IllegalArgumentException("Fehler: Ein Parkplatz mit genau diesen Eigenschaften existiert bereits.");
-			}
-		}
+        for (Parkplatz vorhanden : alleParkplaetze) {
+            if (vorhanden.getBezeichnung().equals(p.getBezeichnung())
+                    && vorhanden.getAdresse().equals(p.getAdresse())
+                    && vorhanden.getGesamtKapazitaet() == p.getGesamtKapazitaet()
+                    && vorhanden.getStundenSatz() == p.getStundenSatz()
+                    && vorhanden.getSonderSatz() == p.getSonderSatz()
+                    && vorhanden.getFeaturesAlsText().equals(p.getFeaturesAlsText())) {
+                throw new IllegalArgumentException("Fehler: Ein Parkplatz mit genau diesen Eigenschaften existiert bereits.");
+            }
+        }
 
-		Betreiber betreiber = (Betreiber) aktuellerNutzer;
+        Betreiber betreiber = (Betreiber) aktuellerNutzer;
+        betreiber.addParkplatz(p);
+        alleParkplaetze.add(p);
+    }
 
-		// addParkplatz prüft Kapazität/Stundensatz (Validierung)
-		// und legt den Parkplatz in meineParkplaetze des Betreibers ab.
-		betreiber.addParkplatz(p);
+    public List<Parkplatz> sucheParkplaetze(String ort, List<String> featureFilter) {
+        List<Parkplatz> ergebnis = new ArrayList<>();
+        String suchOrt = ort == null ? "" : ort.trim().toLowerCase();
 
-		// Zusätzlich in die globale Liste, damit Kunden den Parkplatz sehen und buchen können.
-		alleParkplaetze.add(p);
-	}
-    
+        for (Parkplatz p : alleParkplaetze) {
+            boolean ortPasst = suchOrt.isEmpty()
+                    || p.getAdresse().toLowerCase().contains(suchOrt)
+                    || p.getBezeichnung().toLowerCase().contains(suchOrt);
+
+            boolean featuresPassen = p.hatAlleFeatures(featureFilter);
+
+            if (ortPasst && featuresPassen) {
+                ergebnis.add(p);
+            }
+        }
+
+        return ergebnis;
+    }
 
     public User registriereNutzer(String name, String email, String typ) {
         if (name == null || name.isBlank()) {
@@ -188,72 +179,81 @@ public class PlattformManager {
         return neuerNutzer;
     }
 
-	public boolean login(String email) {
-		if (email == null || email.isBlank()) {
-		    System.out.println("Fehler: E-Mail ist leer.");
-		    return false;
-		}
+    public boolean login(String email) {
+        if (email == null || email.isBlank()) {
+            System.out.println("Fehler: E-Mail ist leer.");
+            return false;
+        }
 
-		email = email.trim().toLowerCase();
+        email = email.trim().toLowerCase();
 
-		for (User user : alleNutzer) {
-			if (user.getEmail().equalsIgnoreCase(email)) {
-				aktuellerNutzer = user;
-				return true;
-			}
-		}
+        for (User user : alleNutzer) {
+            if (user.getEmail().equalsIgnoreCase(email)) {
+                aktuellerNutzer = user;
+                return true;
+            }
+        }
 
-		System.out.println("Fehler: Kein Nutzer mit dieser E-Mail gefunden.");
-		return false;
-	}
-	
-	// Meldet den aktuell eingeloggten Nutzer ab.
-	public void logout() {
-		this.aktuellerNutzer = null;
-	}
+        System.out.println("Fehler: Kein Nutzer mit dieser E-Mail gefunden.");
+        return false;
+    }
 
-	public void addNutzer(User user) {
-		if (user != null) {						// Kleine Hilfsmethode zum testen
-			alleNutzer.add(user);
-		}
-	}
+    public void logout() {
+        this.aktuellerNutzer = null;
+    }
 
-	public List<Buchung> getZukuenftigeBuchungenFuerBetreiber(Betreiber b) {
-		// TODO: Implementierung
-		return null;
-	}
+    public void addNutzer(User user) {
+        if (user != null) {
+            alleNutzer.add(user);
+        }
+    }
 
-	public void ladeSystemDaten() {
-		this.alleNutzer = FileIO.ladeUser();
-		this.alleParkplaetze = FileIO.ladeParkplaetze();
-		this.alleBuchungen = FileIO.ladeBuchungen();
-		this.aktuellerNutzer = FileIO.ladeSystemDaten();
-		
-		// Referenzen wiederherstellen (damit b.getParkplatz() das gleiche Objekt ist wie in alleParkplaetze)
-		for (Buchung b : alleBuchungen) {
-			for (Parkplatz p : alleParkplaetze) {
-				if (b.getParkplatz().getId().equals(p.getId())) {
-					// Ersetze die deserialisierte Kopie durch das Original-Objekt aus der Liste
-					try {
-						java.lang.reflect.Field f = Buchung.class.getDeclaredField("parkplatz");
-						f.setAccessible(true);
-						f.set(b, p);
-					} catch (Exception e) {}
-					break;
-				}
-			}
-		}
-	}
+    public List<Buchung> getZukuenftigeBuchungenFuerBetreiber(Betreiber b) {
+        return null;
+    }
 
-	public void speichereSystemDaten() {
-		FileIO.speichereUser(this.alleNutzer);
-		FileIO.speichereParkplaetze(this.alleParkplaetze);
-		FileIO.speichereBuchungen(this.alleBuchungen);
-		FileIO.speichereSystemDaten(this.aktuellerNutzer);
-	}
+    @SuppressWarnings("unchecked")
+    public void ladeSystemDaten() {
+        this.alleNutzer = FileIO.ladeUser();
+        this.alleParkplaetze = FileIO.ladeParkplaetze();
+        this.alleBuchungen = FileIO.ladeBuchungen();
+        this.aktuellerNutzer = FileIO.ladeSystemDaten();
 
-	public List<Parkplatz> getAlleParkplaetze() { return alleParkplaetze; }
-	public List<Buchung> getAlleBuchungen() { return alleBuchungen; }
-	public List<User> getAlleNutzer() { return alleNutzer; }
-	public User getAktuellerNutzer() { return aktuellerNutzer; }
+        for (Buchung b : alleBuchungen) {
+            for (Parkplatz p : alleParkplaetze) {
+                if (b.getParkplatz().getId().equals(p.getId())) {
+                    try {
+                        java.lang.reflect.Field f = Buchung.class.getDeclaredField("parkplatz");
+                        f.setAccessible(true);
+                        f.set(b, p);
+                    } catch (Exception e) {
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    public void speichereSystemDaten() {
+        FileIO.speichereUser(this.alleNutzer);
+        FileIO.speichereParkplaetze(this.alleParkplaetze);
+        FileIO.speichereBuchungen(this.alleBuchungen);
+        FileIO.speichereSystemDaten(this.aktuellerNutzer);
+    }
+
+    public List<Parkplatz> getAlleParkplaetze() {
+        return alleParkplaetze;
+    }
+
+    public List<Buchung> getAlleBuchungen() {
+        return alleBuchungen;
+    }
+
+    public List<User> getAlleNutzer() {
+        return alleNutzer;
+    }
+
+    public User getAktuellerNutzer() {
+        return aktuellerNutzer;
+    }
 }

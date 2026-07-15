@@ -1,5 +1,8 @@
 package controller;
 
+import java.util.Arrays;
+import java.util.List;
+
 import model.Betreiber;
 import model.Parkplatz;
 import model.User;
@@ -230,7 +233,7 @@ public class DevBootstrap {
         for (var p : b.getMeineParkplaetze()) {
             System.out.println(p.getId() + " - " + p.getBezeichnung());
         }
-        
+
         // Optional: Systemdaten speichern, damit der Betreiber und seine Parkplätze
         // nach einem Neustart erneut geladen werden können.
         try {
@@ -242,8 +245,37 @@ public class DevBootstrap {
     }
 
     private static void ParklatzValidierungUndAnlegen(PlattformManager manager, String id, String bez, String adr, int kap, double satz, double sonder) {
-        Parkplatz p = new Parkplatz(id, bez, adr, kap, satz, sonder);
-        manager.parkplatzAnlegen(p);
-        System.out.println("Angelegt: " + p.getId() + " - " + p.getBezeichnung());
-    }
+	List<String> features = ermittleBeispielFeatures(id, bez, adr);
+
+	Parkplatz p = new Parkplatz(id, bez, adr, kap, satz, sonder, features);
+	manager.parkplatzAnlegen(p);
+	System.out.println("Angelegt: " + p.getId() + " - " + p.getBezeichnung()
+	+ " | Features: " + p.getFeaturesAlsText());
+	}
+
+	private static List<String> ermittleBeispielFeatures(String id, String bez, String adr) {
+	String text = (id + " " + bez + " " + adr).toLowerCase();
+
+	if (text.contains("hauptbahnhof") || text.contains("airport") || text.contains("flughafen")) {
+	return Arrays.asList("E-Laden", "Überdacht", "Videoüberwacht");
+	}
+
+	if (text.contains("hilton") || text.contains("hotel") || text.contains("kempinski")) {
+	return Arrays.asList("Überdacht", "Videoüberwacht");
+	}
+
+	if (text.contains("messe") || text.contains("arena") || text.contains("center") || text.contains("arcaden")) {
+	return Arrays.asList("E-Laden", "Behindertengerecht", "Videoüberwacht");
+	}
+
+	if (text.contains("parkhaus") || text.contains("tiefgarage")) {
+	return Arrays.asList("Überdacht", "Videoüberwacht");
+	}
+
+	if (text.contains("zoo") || text.contains("oper") || text.contains("philharmonie")) {
+	return Arrays.asList("Behindertengerecht", "Videoüberwacht");
+	}
+
+	return Arrays.asList("Überdacht");
+	}
 }
