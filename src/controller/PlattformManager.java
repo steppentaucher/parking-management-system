@@ -119,6 +119,51 @@ public class PlattformManager {
         betreiber.addParkplatz(p);
         alleParkplaetze.add(p);
     }
+    
+    public void parkplatzLoeschen(Parkplatz p) {
+        // Nur ein eingeloggter Betreiber darf Parkplaetze loeschen.
+        if (!(aktuellerNutzer instanceof Betreiber)) {
+            throw new IllegalStateException("Nur Betreiber dürfen Parkplätze löschen.");
+        }
+
+        // Ein Parkplatz mit vorhandenen Buchungen darf nicht geloescht werden.
+        for (Buchung b : alleBuchungen) {
+            if (b.getParkplatz() != null && b.getParkplatz().getId().equals(p.getId())) {
+                throw new IllegalStateException("Fehler: Dieser Parkplatz kann nicht gelöscht werden, da dieser bereits gebucht wurde!");
+            }
+        }
+
+        // Aus beiden Listen entfernen (gleiches Prinzip wie beim Anlegen, nur umgekehrt)
+        Betreiber betreiber = (Betreiber) aktuellerNutzer;
+        betreiber.getMeineParkplaetze().remove(p);
+        alleParkplaetze.remove(p);
+    }
+
+    public void parkplatzBearbeiten(Parkplatz p, String bezeichnung, String adresse,
+            int kapazitaet, double stundenSatz, double sonderSatz, List<String> features) {
+        // Nur ein eingeloggter Betreiber darf Parkplaetze bearbeiten.
+        if (!(aktuellerNutzer instanceof Betreiber)) {
+            throw new IllegalStateException("Nur Betreiber dürfen Parkplätze bearbeiten.");
+        }
+
+        // Gleiche Validierung wie beim Anlegen
+        if (kapazitaet <= 0) {
+            throw new IllegalArgumentException("Fehler: Die Gesamtkapazität muss größer als 0 sein.");
+        }
+        if (stundenSatz <= 0.0) {
+            throw new IllegalArgumentException("Fehler: Der Stundensatz muss größer als 0.0 sein.");
+        }
+
+        // Neue Werte in das bestehende Parkplatz-Objekt uebernehmen.
+        // Bestehende Buchungen behalten ihren Preis, da dieser beim Buchen
+        // fest in der Buchung gespeichert wird.
+        p.setBezeichnung(bezeichnung);
+        p.setAdresse(adresse);
+        p.setGesamtKapazitaet(kapazitaet);
+        p.setStundenSatz(stundenSatz);
+        p.setSonderSatz(sonderSatz);
+        p.setFeatures(features);
+    }
 
     public List<Parkplatz> sucheParkplaetze(String ort, List<String> featureFilter) {
         List<Parkplatz> ergebnis = new ArrayList<>();
