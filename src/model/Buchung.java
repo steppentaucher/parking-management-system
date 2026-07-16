@@ -15,6 +15,11 @@ public class Buchung implements Serializable {
     private Kunde kunde;
     private LocalDateTime von;
     private LocalDateTime bis;
+    // Preis und Aufschluesselung werden bei der Erstellung der Buchung einmalig
+    // berechnet und gespeichert. Spaetere Preisaenderungen am Parkplatz haben
+    // dadurch keine Auswirkung mehr auf bestehende Buchungen.
+    private double gespeicherterPreis;
+    private String gespeicherteAufschluesselung;
 
     // Feste Liste der Berliner Feiertage fuer 2026 und 2027.
     // An diesen Tagen gilt - wie am Wochenende - der Sondersatz des Parkplatzes.
@@ -49,12 +54,23 @@ public class Buchung implements Serializable {
         this.kunde = k;
         this.von = von;
         this.bis = bis;
+
+        // Preis direkt bei der Erstellung festhalten ("einfrieren")
+        this.gespeicherterPreis = berechnePreisLive();
+        this.gespeicherteAufschluesselung = erstelleAufschluesselungLive();
     }
 
     // Berechnet den Gesamtpreis der Buchung.
     // Minuten an Wochenenden/Feiertagen werden mit dem Sondersatz berechnet,
     // alle uebrigen Minuten mit dem normalen Stundensatz.
+    // Gibt den bei der Buchung festgehaltenen Preis zurueck.
     public double berechnePreis() {
+        return gespeicherterPreis;
+    }
+
+    // Berechnet den Preis anhand der aktuellen Saetze des Parkplatzes.
+    // Wird nur einmal im Konstruktor aufgerufen.
+    private double berechnePreisLive() {
         long gesamtMinuten = Duration.between(von, bis).toMinutes();
         if (gesamtMinuten < 15) {
             return 0.0;
@@ -74,7 +90,14 @@ public class Buchung implements Serializable {
     
     // Erstellt einen lesbaren Text, der zeigt, wie sich der Preis zusammensetzt.
     // Wird dem Kunden bei der Buchung angezeigt (Wochentag- vs. Wochenend-/Feiertagsanteil).
+    // Gibt die bei der Buchung festgehaltene Preisuebersicht zurueck.
     public String getPreisAufschluesselung() {
+        return gespeicherteAufschluesselung;
+    }
+
+    // Erstellt die Aufschluesselung anhand der aktuellen Saetze des Parkplatzes.
+    // Wird nur einmal im Konstruktor aufgerufen.
+    private String erstelleAufschluesselungLive() {
         long gesamtMinuten = Duration.between(von, bis).toMinutes();
         if (gesamtMinuten < 15) {
             return "Die Mindestbuchungsdauer von 15 Minuten ist nicht erreicht.";

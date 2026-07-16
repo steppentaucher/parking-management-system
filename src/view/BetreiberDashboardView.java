@@ -45,6 +45,8 @@ public class BetreiberDashboardView extends JPanel {
     private DefaultTableModel modellBelegung;
     private JButton buttonAlleBuchungenAnzeigen;
     private JButton buttonLogout;
+    private JLabel formularTitelLabel;
+    private ParkplatzFormularKomponente formularKomponente;
 
     private final Color HINTERGRUND_FARBE = new Color(245, 247, 250);
     private final Color KARTEN_HINTERGRUND = Color.WHITE;
@@ -102,7 +104,10 @@ public class BetreiberDashboardView extends JPanel {
         buttonParkplatzAnlegenOeffnen.setFocusPainted(false);
         buttonParkplatzAnlegenOeffnen.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
         buttonParkplatzAnlegenOeffnen.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        buttonParkplatzAnlegenOeffnen.addActionListener(e -> seitenUmschalter.show(seitenContainer, "FORMULAR"));
+        buttonParkplatzAnlegenOeffnen.addActionListener(e -> {
+            formularKomponente.zeigeAnlegenModus();
+            seitenUmschalter.show(seitenContainer, "FORMULAR");
+        });
 
         buttonLogout = new JButton("Logout");
         buttonLogout.setBackground(AKZENT_FARBE);
@@ -137,6 +142,16 @@ public class BetreiberDashboardView extends JPanel {
         tabelleEigeneParkplaetze.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 filtereBelegungNachAuswahl();
+            }
+        });
+        
+        // Doppelklick auf eine Zeile oeffnet den Parkplatz zum Bearbeiten
+        tabelleEigeneParkplaetze.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    oeffneBearbeitenFuerAuswahl();
+                }
             }
         });
 
@@ -183,10 +198,10 @@ public class BetreiberDashboardView extends JPanel {
         JPanel kopfBereich = new JPanel(new BorderLayout());
         kopfBereich.setOpaque(false);
 
-        JLabel titelLabel = new JLabel("Neuen Parkplatz registrieren");
-        titelLabel.setFont(new Font("Arial", Font.BOLD, 26));
-        titelLabel.setForeground(TEXT_MAIN);
-        kopfBereich.add(titelLabel, BorderLayout.WEST);
+        formularTitelLabel = new JLabel("Neuen Parkplatz registrieren");
+        formularTitelLabel.setFont(new Font("Arial", Font.BOLD, 26));
+        formularTitelLabel.setForeground(TEXT_MAIN);
+        kopfBereich.add(formularTitelLabel, BorderLayout.WEST);
 
         JButton buttonZurueck = new JButton("← Zurück zur Übersicht");
         buttonZurueck.setFont(new Font("Arial", Font.BOLD, 14));
@@ -202,8 +217,8 @@ public class BetreiberDashboardView extends JPanel {
         JPanel zentrierungsWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 30));
         zentrierungsWrapper.setOpaque(false);
 
-        ParkplatzFormularKomponente formularKartenKomponente = new ParkplatzFormularKomponente();
-        zentrierungsWrapper.add(formularKartenKomponente);
+        formularKomponente = new ParkplatzFormularKomponente();
+        zentrierungsWrapper.add(formularKomponente);
 
         seite.add(zentrierungsWrapper, BorderLayout.CENTER);
 
@@ -215,6 +230,24 @@ public class BetreiberDashboardView extends JPanel {
         if (ausgewaehlteZeile >= 0) {
             String parkplatzId = tabelleEigeneParkplaetze.getValueAt(ausgewaehlteZeile, 0).toString();
             befuelleBelegungsTabelle(parkplatzId);
+        }
+    }
+    
+    // Oeffnet das Formular im Bearbeiten-Modus fuer den doppelt angeklickten Parkplatz
+    private void oeffneBearbeitenFuerAuswahl() {
+        int zeile = tabelleEigeneParkplaetze.getSelectedRow();
+        if (zeile < 0) {
+            return;
+        }
+
+        String parkplatzId = tabelleEigeneParkplaetze.getValueAt(zeile, 0).toString();
+
+        for (Parkplatz p : aktuellerBetreiber.getMeineParkplaetze()) {
+            if (p.getId().equals(parkplatzId)) {
+                formularKomponente.zeigeBearbeitenModus(p);
+                seitenUmschalter.show(seitenContainer, "FORMULAR");
+                return;
+            }
         }
     }
 
@@ -331,6 +364,12 @@ public class BetreiberDashboardView extends JPanel {
         private JCheckBox chkVideoUeberwacht;
 
         private JButton buttonSpeichern;
+        
+        private JButton buttonLoeschen;
+
+        // Der Parkplatz, der gerade bearbeitet wird.
+        // null bedeutet: das Formular ist im Anlege-Modus.
+        private Parkplatz zuBearbeitenderParkplatz;
 
         public ParkplatzFormularKomponente() {
             setBackground(KARTEN_HINTERGRUND);
@@ -403,9 +442,61 @@ public class BetreiberDashboardView extends JPanel {
             buttonSpeichern.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
             buttonSpeichern.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             buttonSpeichern.addActionListener(e -> verarbeiteSpeicherung());
-            add(buttonSpeichern, BorderLayout.SOUTH);
+
+            // Loeschen-Button (nur im Bearbeiten-Modus sichtbar)
+            buttonLoeschen = new JButton("Parkplatz löschen");
+            buttonLoeschen.setBackground(new Color(220, 38, 38));
+            buttonLoeschen.setForeground(Color.WHITE);
+            buttonLoeschen.setFont(new Font("Arial", Font.BOLD, 14));
+            buttonLoeschen.setFocusPainted(false);
+            buttonLoeschen.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
+            buttonLoeschen.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            buttonLoeschen.addActionListener(e -> verarbeiteLoeschen());
+            buttonLoeschen.setVisible(false);
+
+            JPanel buttonPanel = new JPanel(new GridLayout(2, 1, 0, 8));
+            buttonPanel.setOpaque(false);
+            buttonPanel.add(buttonSpeichern);
+            buttonPanel.add(buttonLoeschen);
+            add(buttonPanel, BorderLayout.SOUTH);
         }
 
+        // Setzt das Formular in den Anlege-Modus zurueck (leere Felder)
+        public void zeigeAnlegenModus() {
+            zuBearbeitenderParkplatz = null;
+            formularTitelLabel.setText("Neuen Parkplatz registrieren");
+            buttonSpeichern.setText("Parkfläche speichern");
+            buttonLoeschen.setVisible(false);
+
+            eingabeBezeichnung.setText("");
+            eingabeAdresse.setText("");
+            eingabeKapazitaet.setText("");
+            eingabeStundensatz.setText("");
+            eingabeSondersatz.setText("");
+            chkELaden.setSelected(false);
+            chkUeberdacht.setSelected(false);
+            chkBehindertengerecht.setSelected(false);
+            chkVideoUeberwacht.setSelected(false);
+        }
+
+        // Befuellt das Formular mit den Werten des gewaehlten Parkplatzes
+        public void zeigeBearbeitenModus(Parkplatz p) {
+            zuBearbeitenderParkplatz = p;
+            formularTitelLabel.setText("Parkplatz bearbeiten");
+            buttonSpeichern.setText("Änderungen speichern");
+            buttonLoeschen.setVisible(true);
+
+            eingabeBezeichnung.setText(p.getBezeichnung());
+            eingabeAdresse.setText(p.getAdresse());
+            eingabeKapazitaet.setText(String.valueOf(p.getGesamtKapazitaet()));
+            eingabeStundensatz.setText(String.valueOf(p.getStundenSatz()));
+            eingabeSondersatz.setText(String.valueOf(p.getSonderSatz()));
+            chkELaden.setSelected(p.hatFeature("E-Laden"));
+            chkUeberdacht.setSelected(p.hatFeature("Überdacht"));
+            chkBehindertengerecht.setSelected(p.hatFeature("Behindertengerecht"));
+            chkVideoUeberwacht.setSelected(p.hatFeature("Videoüberwacht"));
+        }
+        
         private JCheckBox erstelleFeatureCheckbox(String text) {
             JCheckBox checkBox = new JCheckBox(text);
             checkBox.setOpaque(false);
@@ -467,33 +558,32 @@ public class BetreiberDashboardView extends JPanel {
                 double sonderSatz = Double.parseDouble(eingabeSondersatz.getText().trim());
                 List<String> features = leseAusgewaehlteFeatures();
 
-                String generierteId = java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+                if (zuBearbeitenderParkplatz == null) {
+                    // Anlege-Modus: neuen Parkplatz erzeugen
+                    String generierteId = java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
-                Parkplatz neuerParkplatz = new Parkplatz(
-                        generierteId,
-                        bezeichnung,
-                        adresse,
-                        kapazitaet,
-                        stundenSatz,
-                        sonderSatz,
-                        features
-                );
+                    Parkplatz neuerParkplatz = new Parkplatz(
+                            generierteId,
+                            bezeichnung,
+                            adresse,
+                            kapazitaet,
+                            stundenSatz,
+                            sonderSatz,
+                            features
+                    );
 
-                manager.parkplatzAnlegen(neuerParkplatz);
+                    manager.parkplatzAnlegen(neuerParkplatz);
+                    JOptionPane.showMessageDialog(this, "Parkplatz erfolgreich registriert.", "Erfolg",
+                            JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    // Bearbeiten-Modus: bestehenden Parkplatz aktualisieren
+                    manager.parkplatzBearbeiten(zuBearbeitenderParkplatz, bezeichnung, adresse,
+                            kapazitaet, stundenSatz, sonderSatz, features);
+                    JOptionPane.showMessageDialog(this, "Änderungen wurden gespeichert.", "Erfolg",
+                            JOptionPane.INFORMATION_MESSAGE);
+                }
 
-                JOptionPane.showMessageDialog(this, "Parkplatz erfolgreich registriert.", "Erfolg",
-                        JOptionPane.INFORMATION_MESSAGE);
-
-                eingabeBezeichnung.setText("");
-                eingabeAdresse.setText("");
-                eingabeKapazitaet.setText("");
-                eingabeStundensatz.setText("");
-                eingabeSondersatz.setText("");
-                chkELaden.setSelected(false);
-                chkUeberdacht.setSelected(false);
-                chkBehindertengerecht.setSelected(false);
-                chkVideoUeberwacht.setSelected(false);
-
+                zeigeAnlegenModus();
                 aktualisiereDashboard();
                 seitenUmschalter.show(seitenContainer, "UEBERSICHT");
 
@@ -502,6 +592,39 @@ public class BetreiberDashboardView extends JPanel {
                         "Bitte geben Sie in den Zahlenfeldern gültige Werte ein (z.B. 50 oder 2.50).",
                         "Eingabefehler",
                         JOptionPane.ERROR_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Fehler", JOptionPane.WARNING_MESSAGE);
+            }
+        }
+
+        // Loescht den aktuell bearbeiteten Parkplatz nach einer Sicherheitsabfrage
+        private void verarbeiteLoeschen() {
+            if (zuBearbeitenderParkplatz == null) {
+                return;
+            }
+
+            int antwort = JOptionPane.showConfirmDialog(
+                    this,
+                    "Bist du sicher, dass du den Parkplatz \""
+                            + zuBearbeitenderParkplatz.getBezeichnung() + "\" löschen möchtest?",
+                    "Parkplatz löschen",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE);
+
+            if (antwort != JOptionPane.YES_OPTION) {
+                return;
+            }
+
+            try {
+                manager.parkplatzLoeschen(zuBearbeitenderParkplatz);
+
+                JOptionPane.showMessageDialog(this, "Parkplatz wurde gelöscht.", "Erfolg",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                zeigeAnlegenModus();
+                aktualisiereDashboard();
+                seitenUmschalter.show(seitenContainer, "UEBERSICHT");
+
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage(), "Fehler", JOptionPane.WARNING_MESSAGE);
             }
