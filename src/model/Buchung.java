@@ -143,6 +143,10 @@ public class Buchung implements Serializable {
         long minuten = Duration.between(von, bis).toMinutes();
         return minuten >= 15;
     }
+    
+    public void setParkplatz(Parkplatz parkplatz) {
+        this.parkplatz = parkplatz;
+    }
 
     public String getBuchungsCode() { return buchungsCode; }
     public Parkplatz getParkplatz() { return parkplatz; }

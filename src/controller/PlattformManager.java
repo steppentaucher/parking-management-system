@@ -268,10 +268,9 @@ public class PlattformManager implements IPlattformManager {
             for (Parkplatz p : alleParkplaetze) {
                 if (b.getParkplatz().getId().equals(p.getId())) {
                     try {
-                        java.lang.reflect.Field f = Buchung.class.getDeclaredField("parkplatz");
-                        f.setAccessible(true);
-                        f.set(b, p);
+                    	b.setParkplatz(p);
                     } catch (Exception e) {
+                    	e.printStackTrace();
                     }
                     break;
                 }
