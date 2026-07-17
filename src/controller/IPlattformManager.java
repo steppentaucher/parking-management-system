@@ -23,4 +23,14 @@ public interface IPlattformManager {
     List<Parkplatz> getAlleParkplaetze();
 
     double berechnePreis(Parkplatz p, LocalDateTime von, LocalDateTime bis);
+    
+    List<Parkplatz> sucheParkplaetze(String ort, List<String> featureFilter);
+    
+    boolean verfuegbarkeitPruefen(Parkplatz p, LocalDateTime von, LocalDateTime bis);
+    
+    Buchung bucheParkplatz(Parkplatz p, LocalDateTime von, LocalDateTime bis);
+    
+    String getPreisAufschluesselung(Parkplatz p, LocalDateTime von, LocalDateTime bis);
+    
+    void storniereBuchung(Buchung b);
 }

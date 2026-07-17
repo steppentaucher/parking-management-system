@@ -43,6 +43,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.AbstractBorder;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
@@ -89,7 +91,9 @@ public class KundenDashboardView extends JPanel {
     private JPanel kundenSeitenContainer;
     private JTable tblMeineBuchungen;
     private DefaultTableModel modellMeineBuchungen;
+    private List<Buchung> aktuelleGezeigteBuchungen = new ArrayList<>();
     private JButton btnZurueckZurSuche;
+    private JButton btnStorniereBuchung;
     private JLabel lblNutzerInfo;
     private JButton btnMeineBuchungen;
     private JButton btnLogout;
@@ -147,6 +151,7 @@ public class KundenDashboardView extends JPanel {
         root.add(centerWrapper, BorderLayout.CENTER);
 
         btnSuchen.addActionListener(e -> parkplaetzeSuchen());
+        btnSuchen.doClick();
         btnBuchen.addActionListener(e -> buchungAusfuehren());
         btnJetztSetzen.addActionListener(e -> aktuelleZeitSetzen());
         btnPreisakktualisieren.addActionListener(e -> preisAktualisieren());
@@ -245,13 +250,37 @@ public class KundenDashboardView extends JPanel {
 
         JScrollPane scroll = new JScrollPane(tblMeineBuchungen);
         scroll.setBorder(BorderFactory.createEmptyBorder());
-        seite.add(scroll, BorderLayout.CENTER);
+        
+        // Zentrale Panel mit Tabelle
+        JPanel centerPanel = new JPanel(new BorderLayout(0, 14));
+        centerPanel.setOpaque(false);
+        centerPanel.add(scroll, BorderLayout.CENTER);
+        
+        // Button-Panel unten für Stornieren
+        JPanel buttonPanel = new JPanel(new BorderLayout());
+        buttonPanel.setOpaque(false);
+        
+        btnStorniereBuchung = new GradientButton("Stornieren");
+        btnStorniereBuchung.setPreferredSize(new Dimension(240, 44));
+        btnStorniereBuchung.setEnabled(false);
+        btnStorniereBuchung.addActionListener(e -> stornierAusgewaehlteBuchung());
+        
+        // Listener für Tabellenauswahl
+        tblMeineBuchungen.getSelectionModel().addListSelectionListener(e -> {
+            btnStorniereBuchung.setEnabled(tblMeineBuchungen.getSelectedRow() != -1);
+        });
+        
+        buttonPanel.add(btnStorniereBuchung, BorderLayout.EAST);
+        centerPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        seite.add(centerPanel, BorderLayout.CENTER);
 
         return seite;
     }
 
     private void aktualisiereMeineBuchungen() {
         modellMeineBuchungen.setRowCount(0);
+        aktuelleGezeigteBuchungen.clear();
 
         if (!(manager.getAktuellerNutzer() instanceof model.Kunde)) {
             return;
@@ -260,11 +289,14 @@ public class KundenDashboardView extends JPanel {
         model.Kunde kunde = (model.Kunde) manager.getAktuellerNutzer();
 
         for (Buchung b : kunde.getMeineBuchungen()) {
+            aktuelleGezeigteBuchungen.add(b);
             modellMeineBuchungen.addRow(new Object[] {
                     b.getBuchungsCode(),
+                    b.getParkplatz().getAdresse(),
                     b.getParkplatz().getBezeichnung(),
                     b.getVon(),
                     b.getBis(),
+
                     String.format("%.2f", b.berechnePreis())
             });
         }
@@ -289,6 +321,68 @@ public class KundenDashboardView extends JPanel {
         java.awt.Window fenster = SwingUtilities.getWindowAncestor(this);
         if (fenster instanceof MainFrame) {
             ((MainFrame) fenster).zeigeLoginView();
+        }
+    }
+
+    private void stornierAusgewaehlteBuchung() {
+        int ausgewaehlteReihe = tblMeineBuchungen.getSelectedRow();
+        
+        if (ausgewaehlteReihe == -1) {
+            JOptionPane.showMessageDialog(this, "Bitte wähle eine Buchung zum Stornieren aus.");
+            return;
+        }
+        
+        if (ausgewaehlteReihe >= aktuelleGezeigteBuchungen.size()) {
+            JOptionPane.showMessageDialog(this, "Fehler beim Abrufen der Buchung.");
+            return;
+        }
+        
+        Buchung buchungZuStornieren = aktuelleGezeigteBuchungen.get(ausgewaehlteReihe);
+        String buchungsCode = buchungZuStornieren.getBuchungsCode();
+        
+        int bestaetigung = JOptionPane.showConfirmDialog(
+                this,
+                "Möchtest du wirklich die Buchung \"" + buchungsCode + "\" stornieren?\n" +
+                "Dies kann nicht rückgängig gemacht werden.",
+                "Stornierung bestätigen",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+        
+        if (bestaetigung != JOptionPane.YES_OPTION) {
+            return;
+        }
+        
+        try {
+            manager.storniereBuchung(buchungZuStornieren);
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Buchung \"" + buchungsCode + "\" erfolgreich storniert.",
+                    "Stornierung erfolgreich",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            
+            // Tabelle und Nutzer-Info aktualisieren
+            aktualisiereMeineBuchungen();
+            aktualisiereNutzerInfo();
+            
+            // Tabellenauswahl zurücksetzen
+            tblMeineBuchungen.clearSelection();
+            
+        } catch (SecurityException e) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Fehler: " + e.getMessage(),
+                    "Stornierung fehlgeschlagen",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Fehler beim Stornieren der Buchung.",
+                    "Fehler",
+                    JOptionPane.ERROR_MESSAGE
+            );
         }
     }
 
@@ -359,6 +453,28 @@ public class KundenDashboardView extends JPanel {
 
         txtSuchOrt = createRoundedTextField();
         txtSuchOrt.setPreferredSize(new Dimension(240, 44));
+        txtSuchOrt.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                textGeaendert();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                textGeaendert();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                // Wird bei reinem Text selten benötigt, gehört aber zum Interface
+                textGeaendert();
+            }
+
+            // Hilfsmethode, um bei jeder Änderung den aktuellen Text zu holen
+            private void textGeaendert() {
+               btnSuchen.doClick(); // Automatisch die Suche auslösen, wenn der Text geändert wird
+            }
+        });
 
         btnSuchen = new GradientButton("Suchen");
         btnSuchen.setPreferredSize(new Dimension(150, 44));
@@ -793,6 +909,7 @@ public class KundenDashboardView extends JPanel {
         List<Parkplatz> treffer;
         try {
             treffer = manager.sucheParkplaetze(suchOrt, featureFilter);
+           
         } catch (Exception e) {
             treffer = new ArrayList<>();
             for (Parkplatz p : manager.getAlleParkplaetze()) {
@@ -814,6 +931,7 @@ public class KundenDashboardView extends JPanel {
                     String.format("%.2f", berechneAngezeigtenStundensatz(p, von, bis))
             });
         }
+       
 
         tblParkplaetze.setModel(model);
         applyTableRenderers();
@@ -823,6 +941,9 @@ public class KundenDashboardView extends JPanel {
             JOptionPane.showMessageDialog(this, "Keine passenden Parkplätze gefunden.");
         }
     }
+    
+    
+    
 
     private double berechneAngezeigtenStundensatz(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
         if (von == null || bis == null || !bis.isAfter(von)) {

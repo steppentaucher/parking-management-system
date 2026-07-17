@@ -1,6 +1,8 @@
 package view;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -20,6 +22,8 @@ public class MainFrame extends JFrame implements IMainFrame {
 
     // Enthält das aktuell angezeigte Panel im Fenster
     private JPanel aktuellesPanel;
+    
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
     // Konstruktor des Hauptfensters
     public MainFrame(PlattformManager manager) {
@@ -32,7 +36,7 @@ public class MainFrame extends JFrame implements IMainFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // Standardgröße des Fensters
-        setSize(1000, 700);
+        setSize(screenSize.width, screenSize.height);
 
         // Fenster mittig auf dem Bildschirm platzieren
         setLocationRelativeTo(null);
