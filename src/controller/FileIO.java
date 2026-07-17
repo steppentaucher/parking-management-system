@@ -5,6 +5,11 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Persistenz-Layer für das Parkplatz-Management-System
+ * Speichert und lädt alle Daten (User, Parkplätze, Buchungen) von der Festplatte
+ * Nutzt Serialisierung (ObjectOutputStream) um Objekte als Binärdaten zu speichern
+ */
 public class FileIO {
     private static final String DIR = "speicher";
     private static final String USER_FILE = DIR + "/users.txt";
@@ -12,6 +17,7 @@ public class FileIO {
     private static final String BUCH_FILE = DIR + "/buchungen.txt";
     private static final String SYS_FILE = DIR + "/system_data.txt";
 
+    // Erstellt den "speicher"-Ordner falls dieser noch nicht existiert
     private static void checkDir() {
         File folder = new File(DIR);
         if (!folder.exists()) {
@@ -19,6 +25,7 @@ public class FileIO {
         }
     }
 
+    // Speichert User-Liste als Binärdatei
     @SuppressWarnings("unchecked")
     public static void speichereUser(List<User> liste) {
         checkDir();
@@ -29,6 +36,7 @@ public class FileIO {
         }
     }
 
+    // Lädt User-Liste von Festplatte, gibt leere Liste zurück wenn File nicht existiert
     @SuppressWarnings("unchecked")
     public static List<User> ladeUser() {
         File f = new File(USER_FILE);
@@ -40,6 +48,7 @@ public class FileIO {
         }
     }
 
+    // Speichert Parkplatz-Liste als Binärdatei
     @SuppressWarnings("unchecked")
     public static void speichereParkplaetze(List<Parkplatz> liste) {
         checkDir();
@@ -50,6 +59,7 @@ public class FileIO {
         }
     }
 
+    // Lädt Parkplatz-Liste von Festplatte
     @SuppressWarnings("unchecked")
     public static List<Parkplatz> ladeParkplaetze() {
         File f = new File(PARK_FILE);
@@ -61,6 +71,7 @@ public class FileIO {
         }
     }
 
+    // Speichert Buchungs-Liste als Binärdatei
     @SuppressWarnings("unchecked")
     public static void speichereBuchungen(List<Buchung> liste) {
         checkDir();
@@ -71,6 +82,7 @@ public class FileIO {
         }
     }
 
+    // Lädt Buchungs-Liste von Festplatte
     @SuppressWarnings("unchecked")
     public static List<Buchung> ladeBuchungen() {
         File f = new File(BUCH_FILE);
@@ -82,6 +94,7 @@ public class FileIO {
         }
     }
 
+    // Speichert den aktuell eingeloggten User (damit er beim Neustarten noch logged ist)
     public static void speichereSystemDaten(User aktuellerNutzer) {
         checkDir();
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(SYS_FILE))) {
@@ -91,6 +104,7 @@ public class FileIO {
         }
     }
 
+    // Lädt den aktuell eingeloggten User von Festplatte (falls vorhanden, sonst null)
     public static User ladeSystemDaten() {
         File f = new File(SYS_FILE);
         if (!f.exists()) return null;

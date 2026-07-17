@@ -56,9 +56,16 @@ import controller.PlattformManager;
 import model.Buchung;
 import model.Parkplatz;
 
+/**
+ * Dashboard für Kunden (Nutzer die Parkplätze buchen möchten)
+ * Zeigt Suchformular zum Parkplätze finden und eine Tabelle der gefundenen Plätze
+ * Mit Buchungs-Funktion und Preis-Anzeige
+ * Hat zwei "Seiten": Suchen und Meine Buchungen (umgeschaltet mit CardLayout)
+ */
 public class KundenDashboardView extends JPanel {
     private static final long serialVersionUID = 1L;
 
+    // === Farben für das Design ===
     private static final Color PAGE_BG = new Color(245, 247, 255);
     private static final Color CARD_BG = Color.WHITE;
     private static final Color PRIMARY = new Color(79, 70, 229);

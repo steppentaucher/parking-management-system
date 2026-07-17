@@ -3,6 +3,10 @@ package model;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Betreiber-Klasse: ein User, der Parkplätze anlegen, bearbeiten und löschen darf
+ * Speichert die Liste der Parkplätze, die dieser Betreiber verwaltet
+ */
 public class Betreiber extends User {
     
     private List<Parkplatz> meineParkplaetze;
@@ -12,6 +16,10 @@ public class Betreiber extends User {
         this.meineParkplaetze = new ArrayList<>();
     }
 
+    /**
+     * Fügt einen neuen Parkplatz hinzu (mit Validierung)
+     * Prüft dass Kapazität > 0 und Stundensatz > 0
+     */
     public void addParkplatz(Parkplatz p) {
         
         if (p.getGesamtKapazitaet() <= 0) {

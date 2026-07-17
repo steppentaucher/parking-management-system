@@ -32,10 +32,19 @@ import controller.PlattformManager;
 import model.Betreiber;
 import model.Parkplatz;
 
+/**
+ * Dashboard für Betreiber (Nutzer die Parkplätze verwaften)
+ * Zeigt Liste eigener Parkplätze mit Edit/Delete-Funktion
+ * Ermöglicht das Anlegen neuer Parkplätze über ein Formular
+ * Hat mehrere "Seiten": Parkplätze übersicht, Formular zum Hinzufügen, Belegungsplan
+ */
 public class BetreiberDashboardView extends JPanel {
 
+    // Betreiber der angemeldet ist
     private Betreiber aktuellerBetreiber;
     private PlattformManager manager;
+    
+    // CardLayout um zwischen verschiedenen Seiten umzuschalten
     private CardLayout seitenUmschalter;
     private JPanel seitenContainer;
 

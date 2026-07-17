@@ -12,12 +12,18 @@ import model.Kunde;
 import model.Parkplatz;
 import model.User;
 
+/**
+ * Zentrale Business-Logic des Parkplatz-Management-Systems
+ * Verwaltet Parkplätze, Buchungen, User und handelt alle wichtigen Operationen ab
+ * Agiert als Vermittler zwischen View und Model (Controller-Pattern)
+ */
 public class PlattformManager implements IPlattformManager {
     private List<Parkplatz> alleParkplaetze;
     private List<Buchung> alleBuchungen;
     private List<User> alleNutzer;
     private User aktuellerNutzer;
 
+    // Pattern um E-Mail-Adressen zu validieren (Regex)
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
@@ -28,6 +34,10 @@ public class PlattformManager implements IPlattformManager {
         this.aktuellerNutzer = null;
     }
 
+    /**
+     * Löscht eine Buchung, aber nur wenn der aktuell eingeloggte User der Besitzer ist (Security)
+     * Die Buchung wird aus der allgemeinen Liste und aus der Kundenliste gelöscht
+     */
     public void storniereBuchung(Buchung b) {
         if (this.aktuellerNutzer == null || !this.aktuellerNutzer.equals(b.getKunde())) {
             throw new SecurityException("Abbruch: Nur der Besitzer der Buchung darf diese stornieren.");
@@ -41,11 +51,17 @@ public class PlattformManager implements IPlattformManager {
         System.out.println("Buchung erfolgreich storniert.");
     }
 
+    /**
+     * Prüft ob ein Parkplatz im gewünschten Zeitraum verfügbar ist
+     * Zählt alle Buchungen die den gleichen Parkplatz und Zeitraum betreffen
+     * Wenn Anzahl < Kapazität: verfügbar
+     */
     public boolean verfuegbarkeitPruefen(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
         int count = 0;
 
         for (Buchung b : alleBuchungen) {
             if (b.getParkplatz().getId().equals(p.getId())) {
+                // Prüfen ob die Zeiten nicht überschneiden (komplexe Logik mit isBefore, isAfter, etc.)
                 if (!(bis.isBefore(b.getVon()) || bis.isEqual(b.getVon())
                         || von.isAfter(b.getBis()) || von.isEqual(b.getBis()))) {
                     count++;
@@ -56,16 +72,23 @@ public class PlattformManager implements IPlattformManager {
         return count < p.getGesamtKapazitaet();
     }
 
+    // Berechnet den Preis für eine potenzielle Buchung (ohne sie zu erstellen)
     public double berechnePreis(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
         Buchung testBuchung = new Buchung("test", p, null, von, bis);
         return testBuchung.berechnePreis();
     }
 
+    // Gibt eine lesbare Zusammensetzung des Preises zurück (Wochentag vs Wochenende)
     public String getPreisAufschluesselung(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
         Buchung testBuchung = new Buchung("test", p, null, von, bis);
         return testBuchung.getPreisAufschluesselung();
     }
 
+    /**
+     * Erstellt und speichert eine neue Buchung (Hauptfunktion für Kunden)
+     * Validiert: nur Kunden dürfen buchen, Zeiten sind korrekt, Mindestdauer erfüllt, Platz verfügbar
+     * Gibt die neue Buchung zurück oder null wenn nicht verfügbar
+     */
     public Buchung bucheParkplatz(Parkplatz p, LocalDateTime von, LocalDateTime bis) {
         if (!(aktuellerNutzer instanceof Kunde)) {
             throw new IllegalStateException("Nur Kunden können einen Parkplatz buchen.");
@@ -89,6 +112,7 @@ public class PlattformManager implements IPlattformManager {
             return null;
         }
 
+        // Generiere eindeutigen 8-stelligen Code für diese Buchung
         String code = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         Kunde kunde = (Kunde) aktuellerNutzer;
         Buchung neueBuchung = new Buchung(code, p, kunde, von, bis);
@@ -99,6 +123,10 @@ public class PlattformManager implements IPlattformManager {
         return neueBuchung;
     }
 
+    /**
+     * Betreiber können neue Parkplätze anlegen
+     * Prüft dass kein Duplikat mit gleichen Eigenschaften existiert
+     */
     public void parkplatzAnlegen(Parkplatz p) {
         if (!(aktuellerNutzer instanceof Betreiber)) {
             throw new IllegalStateException("Nur Betreiber dürfen Parkplätze anlegen.");
@@ -120,6 +148,10 @@ public class PlattformManager implements IPlattformManager {
         alleParkplaetze.add(p);
     }
     
+    /**
+     * Betreiber können nur Parkplätze löschen die keine Buchungen haben
+     * Verhindert dass gebuchte Parkplätze gelöscht werden
+     */
     public void parkplatzLoeschen(Parkplatz p) {
         // Nur ein eingeloggter Betreiber darf Parkplaetze loeschen.
         if (!(aktuellerNutzer instanceof Betreiber)) {
@@ -139,6 +171,10 @@ public class PlattformManager implements IPlattformManager {
         alleParkplaetze.remove(p);
     }
 
+    /**
+     * Betreiber können ihre Parkplätze bearbeiten (Name, Adresse, Kapazität, Preise, Features)
+     * Bestehende Buchungen behalten ihren alten Preis (dieser wird nicht nachträglich geändert)
+     */
     public void parkplatzBearbeiten(Parkplatz p, String bezeichnung, String adresse,
             int kapazitaet, double stundenSatz, double sonderSatz, List<String> features) {
         // Nur ein eingeloggter Betreiber darf Parkplaetze bearbeiten.
@@ -165,6 +201,10 @@ public class PlattformManager implements IPlattformManager {
         p.setFeatures(features);
     }
 
+    /**
+     * Sucht Parkplätze nach Ort und/oder Features
+     * Gibt alle Parkplätze zurück die passen (Kombination von Adresse/Bezeichnung + Features)
+     */
     public List<Parkplatz> sucheParkplaetze(String ort, List<String> featureFilter) {
         List<Parkplatz> ergebnis = new ArrayList<>();
         String suchOrt = ort == null ? "" : ort.trim().toLowerCase();
@@ -184,6 +224,11 @@ public class PlattformManager implements IPlattformManager {
         return ergebnis;
     }
 
+    /**
+     * Neuer Nutzer registriert sich (Kunde oder Betreiber)
+     * Validiert: Name nicht leer, E-Mail gültig, E-Mail noch nicht vergeben
+     * Generiert eindeutige User-ID (UUID)
+     */
     public User registriereNutzer(String name, String email, String typ) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Fehler: Name darf nicht leer sein.");
@@ -224,6 +269,11 @@ public class PlattformManager implements IPlattformManager {
         return neuerNutzer;
     }
 
+    /**
+     * User versucht sich mit E-Mail einzuloggen
+     * Findet User mit dieser E-Mail und speichert ihn als aktuellen User
+     * Gibt true zurück wenn erfolgreich, false wenn User nicht gefunden
+     */
     public boolean login(String email) {
         if (email == null || email.isBlank()) {
             System.out.println("Fehler: E-Mail ist leer.");
@@ -243,20 +293,28 @@ public class PlattformManager implements IPlattformManager {
         return false;
     }
 
+    // Setzt aktuellen User auf null (logout)
     public void logout() {
         this.aktuellerNutzer = null;
     }
 
+    // Fügt einen neuen User zur Liste hinzu (wird von FileIO beim Laden benutzt)
     public void addNutzer(User user) {
         if (user != null) {
             alleNutzer.add(user);
         }
     }
 
+    // (Unvollständig: sollte zukünftige Buchungen für einen Betreiber anzeigen)
     public List<Buchung> getZukuenftigeBuchungenFuerBetreiber(Betreiber b) {
         return null;
     }
 
+    /**
+     * Lädt alle Daten von Festplatte (wird beim App-Start aufgerufen)
+     * Lädt User, Parkplätze, Buchungen und den aktuellen User
+     * Verbindet Buchungen mit ihren Parkplatz-Objekten
+     */
     @SuppressWarnings("unchecked")
     public void ladeSystemDaten() {
         this.alleNutzer = FileIO.ladeUser();
@@ -264,6 +322,7 @@ public class PlattformManager implements IPlattformManager {
         this.alleBuchungen = FileIO.ladeBuchungen();
         this.aktuellerNutzer = FileIO.ladeSystemDaten();
 
+        // Verbinde Buchungen mit den echten Parkplatz-Objekten (wird von FileIO geladen)
         for (Buchung b : alleBuchungen) {
             for (Parkplatz p : alleParkplaetze) {
                 if (b.getParkplatz().getId().equals(p.getId())) {
@@ -278,6 +337,10 @@ public class PlattformManager implements IPlattformManager {
         }
     }
 
+    /**
+     * Speichert alle Daten auf Festplatte (wird beim App-Beenden aufgerufen)
+     * Speichert User, Parkplätze, Buchungen und den aktuellen User
+     */
     public void speichereSystemDaten() {
         FileIO.speichereUser(this.alleNutzer);
         FileIO.speichereParkplaetze(this.alleParkplaetze);
@@ -285,6 +348,7 @@ public class PlattformManager implements IPlattformManager {
         FileIO.speichereSystemDaten(this.aktuellerNutzer);
     }
 
+    // Getter-Methoden für alle Listen und aktuellen User
     public List<Parkplatz> getAlleParkplaetze() {
         return alleParkplaetze;
     }

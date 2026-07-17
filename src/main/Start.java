@@ -8,6 +8,8 @@ import view.MainFrame;
 
 public class Start {
     public static void main(String[] args) {
+
+    	
         SwingUtilities.invokeLater(() -> {
             PlattformManager manager = new PlattformManager();
             manager.ladeSystemDaten();
@@ -22,5 +24,6 @@ public class Start {
             gui.setVisible(true);
             gui.zeigeLoginView();
         });
+       
     }
 }
