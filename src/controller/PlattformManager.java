@@ -12,7 +12,7 @@ import model.Kunde;
 import model.Parkplatz;
 import model.User;
 
-public class PlattformManager {
+public class PlattformManager implements IPlattformManager {
     private List<Parkplatz> alleParkplaetze;
     private List<Buchung> alleBuchungen;
     private List<User> alleNutzer;

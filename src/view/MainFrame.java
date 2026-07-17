@@ -13,7 +13,7 @@ import model.User;
 
 // Diese Klasse ist das Hauptfenster der Anwendung.
 // Sie zeigt je nach Situation die LoginView, KundenView oder BetreiberView an.
-public class MainFrame extends JFrame {
+public class MainFrame extends JFrame implements IMainFrame {
 
     // Zentrale Verwaltungsinstanz der Anwendung
     private PlattformManager manager;
