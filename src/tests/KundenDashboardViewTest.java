@@ -38,10 +38,14 @@ public class KundenDashboardViewTest {
                     2.5
             ));
             
-         // NEU: Testkunde registrieren und einloggen,
-            // damit buchungAusfuehren() einen gültigen Kunden vorfindet
+            // NEU: Testkunde registrieren und einloggen,
+            // damit Buchungs-Workflow (falls über Konsole) funktioniert
             manager.registriereNutzer("Max Mustermann", "max@test.de", "Kunde");
             manager.login("max@test.de");
+
+            // Kurzer Konsolen-Check: Suche nach Parkplätzen am Ort "Berlin"
+            System.out.println("KundenDashboardViewTest: Parkplätze in 'Berlin' (Gefunden: " +
+                    manager.sucheParkplaetze("Berlin", java.util.Collections.emptyList()).size() + ")");
 
             JFrame frame = new JFrame("KundenDashboard Test");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
